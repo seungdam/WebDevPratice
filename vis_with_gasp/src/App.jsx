@@ -1,48 +1,58 @@
 // 1. 필요한 도구들을 상단에서 가져오기 (Import)
 import React, { useRef } from 'react';
-import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
+import Buttons from './buttons/ShakingButtons.jsx'
+import StatisticLayout from './layouts/ExplainLayout.jsx';
+
+
 // 2. 컴포넌트 함수 정의
-function App() {
-  const containerRef = useRef(null);
-  const boxRef = useRef(null);
+function App() 
+{
+  const statsRef = useRef(null);
+  const hButtonAction = () => {
+      statsRef?.current.open(); 
+  };
 
-  const { contextSafe } = useGSAP({ scope: containerRef });
-
-  const handleClick = contextSafe(() => {
-    gsap.to(boxRef.current, { rotation: "+=360", duration: 1 });
-  });
-
-  // 3. UI 구조 내보내기 (Return)
   return (
-    <div ref={containerRef} className="app-container">
-      <h1>나의 첫 GSAP 상호작용</h1>
-      <button onClick={handleClick}>박스 돌리기</button>
-      
-      <div ref={boxRef} className="box">
-        ROLL
+      <div className="app-container" style={styles.appContainer}>
+        <h1>GSAP Sample</h1>      
+        <div style={styles.contents}>
+          <StatisticLayout ref={statsRef} startPosY={50} />
+          <Buttons onTrigger={hButtonAction} scale={1.2} intensity={5} />
+        </div>
       </div>
-
-      <style>{`
-        .app-container { 
-          display: flex; 
-          flex-direction: column; 
-          align-items: center; 
-          justify-content: center; 
-          height: 100vh; 
-        }
-        .box { 
-          width: 100px; height: 100px; 
-          background: skyblue; 
-          margin-top: 20px; 
-          display: flex; align-items: center; justify-content: center;
-          font-weight: bold; border-radius: 10px;
-        }
-      `}</style>
-    </div>
   );
 }
+
+// App.jsx styles
+const styles = {
+  appContainer: {
+    width: '100vw',
+    height: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '40px 20px',
+    backgroundColor: '#f5f5f5',
+    overflow: 'hidden'
+  },
+
+  contents: {
+    position: 'relative',          // 버튼과 Layout 모두의 기준점
+    width: '100%',
+    maxWidth: '1200px',
+    flex: 1,
+    display: 'flex',
+    justifyContent: 'center',      // 버튼 가로 중앙
+    alignItems: 'center',          // 버튼 세로 중앙
+  }
+};
+
+
+
+
+
 
 // 4. 이 컴포넌트를 밖으로 내보내기
 export default App;
