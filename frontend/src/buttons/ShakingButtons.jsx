@@ -1,7 +1,7 @@
 import React, { useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import Heart from '../assets/heart-organ.svg';
+
 
 // create component = create class
 // 
@@ -47,7 +47,7 @@ function ShakingButton(props) // props = parameter, props contain default
         onClick={props.onTrigger}
         style={styles.button}
       >
-      <img src={Heart} alt="heart icon" style={styles.icon}/> 
+      
       </button>
 )};
 
