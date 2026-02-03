@@ -10,8 +10,8 @@ gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
 // 예시 데이터 구조: 그룹별로 씬 목록을 분리
 const sceneGroups = {
-  A: ["Scene1", "Scene2", "Scene3"],
-  B: ["Scene4", "Scene5", "Scene6"],
+  A: ["Scene1"],
+  B: [],
 };
 
 export default function SceneController({ scenes }) {
@@ -34,13 +34,13 @@ export default function SceneController({ scenes }) {
   useEffect(() => {
     if (!activeGroup) return;
 
-    // 새로운 콘텐츠가 나타날 때 전체 페이드 인
     gsap.fromTo(".contentDisplay", 
       { opacity: 0 }, 
       { opacity: 1, duration: 1, ease: "power2.out" }
     );
 
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries) => 
+    {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           gsap.fromTo(entry.target, 
@@ -84,17 +84,18 @@ export default function SceneController({ scenes }) {
 
 const styles = {
   layout: {
-    width: '100%',
+    width: '100vw',
+    maxHeight: '100vh',
+    minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#f5f5f5',
+    position:'relative'
   },
   
   headerArea: {
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: '#ffffff',
-
+    width: '100%',
+    height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -102,10 +103,10 @@ const styles = {
   },
   
   contentDisplay: {
-    width: '100%',
     display: 'flex',
+    width: '100%',
+    height: '100%',
     flexDirection: 'column',
-    gap: '2vh', // 스무스 스크롤 확인 가능한 간격
     paddingBottom: '2vh'
   },
   

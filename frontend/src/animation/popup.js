@@ -1,165 +1,153 @@
-// /utils/animations/popup.js
 import gsap from 'gsap';
-import { EASING, DURATION } from './common.js';
+import { DURATION, EASING } from './common'; // 가정
 
 /**
- * 기본 팝업 (아래에서 슬라이드 업 + 페이드인)
- * 
- * @param {Element|Ref} container - 팝업 컨테이너
- * @param {Element|Ref} card - 팝업 레이아웃(카드)
- * @param {Array|String} items - 카드 내부 아이템들
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
+ * PopUp animation
+ * * @param {Element} cardElement - 메인 카드 (Layout)
+ * @param {Element|Array} contentElements - 내부 아이템들 (Context)
+ * @param {Object} options - 설정 객체 (transform, time 분리)
  */
-export const popupSlideUp = (container, card, items, options = {}) => {
-  const defaults = {
-    startY: 50,              // 시작 Y 오프셋
-    cardDuration: 0.8,       // 카드 애니메이션 시간
-    itemDuration: 0.5,       // 아이템 애니메이션 시간
-    stagger: 0.15,           // 아이템 간격
-    overlap: 0.4,            // 카드-아이템 오버랩 시간
-    ease: EASING.sharp,
-    onComplete: null         // 애니메이션이 끝난 후  
-  };
-  
-  const config = { ...defaults, ...options }; // object composition
-  gsap.set(card, { y: config.startY, opacity: 0 });
-  gsap.set(items, { y: 20, opacity: 0 });
+export const popUpCard = (cardElement, contentElements, options = {}) => {
+  // Validation Check
+  if (!cardElement || !contentElements)
+  {
+    console.warn("[popUpCard] Invalid elements passed.");
+    return gsap.timeline();
+  }
 
-  const tl = gsap.timeline({ onComplete: config.onComplete });
-  
-  // 카드 등장
-  tl.to(card, {
-    y: 0,
-    opacity: 1,
-    duration: config.cardDuration,
-    ease: config.ease
-  });
-  
-  // 아이템 순차 등장
-  tl.to(items, {
-    y: 0,
-    opacity: 1,
-    duration: config.itemDuration,
-    stagger: config.stagger,
-    ease: EASING.smooth
-  }, `-=${config.overlap}`);  // 오버랩
-  
-  return tl;
-};
-
-/**
- * 팝업 닫기 (역방향)
- * 
- * @param {Element|Ref} card - 팝업 카드
- * @param {Array|String} items - 내부 아이템들
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const popupSlideDown = (card, items, options = {}) => {
-  const defaults = {
-    endY: 50,                // 최종 Y 오프셋
-    itemDuration: 0.25,      // 아이템 사라지는 시간
-    cardDuration: 0.4,       // 카드 사라지는 시간
-    stagger: 0.05,           // 아이템 간격
-    overlap: 0.15,           // 아이템-카드 오버랩
-    ease: EASING.smooth,
-    onComplete: null
+  // Check Transform Factor
+  const defaultTransform = {
+    dir: { x: 0, y: 1 },
+    xOffset: 0, yOffset: 0,        
+    scale: 1.0     
   };
-  
-  const config = { ...defaults, ...options };
-  
-  const tl = gsap.timeline({
-    onComplete: config.onComplete
-  });
-  
-  // 아이템 먼저 사라짐
-  tl.to(items, {
+
+  const defaultTime = {
+    cardDuration: DURATION.fast,
+    itemDuration: DURATION.slow,  
+    stagger: 0.1,        // sequence time
+    blending: 0.2,       // blending time
+    ease: EASING.elastic,  // lerp function
+    delay: 0             // delay time
+  };
+
+  // 3. Merging Option
+  const tf = { ...defaultTransform, ...options.transform };
+  const tm = { ...defaultTime, ...options.time };
+  const onComplete = options.onComplete ? options.onComplete : null;
+
+  // 4. Init
+  const startPos = {
+    x: tf.dir.x * tf.xOffset,
+    y: tf.dir.y * tf.yOffset
+  };
+
+  // 5. Timeline Setup
+  const animationSequence = gsap.timeline({ delay: tm.delay, onComplete: onComplete });
+
+  gsap.set(cardElement, { 
+    x: startPos.x, y: startPos.y, 
     opacity: 0,
-    y: -10,
-    duration: config.itemDuration,
-    stagger: config.stagger,
-    ease: config.ease
-  });
+    scale: tf.scale
+   });
   
-  // 카드 사라짐
-  tl.to(card, {
-    y: config.endY,
-    opacity: 0,
-    duration: config.cardDuration,
-    ease: EASING.sharp
-  }, `-=${config.overlap}`);
-  
-  return tl;
-};
-
-/**
- * 스케일 팝업 (중앙에서 확대)
- * 
- * @param {Element|Ref} element - 팝업 요소
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const popupScale = (element, options = {}) => {
-  const defaults = {
-    startScale: 0.8,
-    duration: 0.6,
-    ease: EASING.bouncy,
-    onComplete: null
-  };
-  
-  const config = { ...defaults, ...options };
-  
-  gsap.set(element, { 
-    scale: config.startScale, 
+  // Parallax effect
+  gsap.set(contentElements, { 
+    x: startPos.x * 0.2, 
+    y: startPos.y * 0.2, 
     opacity: 0 
   });
-  
-  return gsap.to(element, {
-    scale: 1,
+
+  animationSequence.to(cardElement, {
+    x: 0, y: 0,
     opacity: 1,
-    duration: config.duration,
-    ease: config.ease,
-    onComplete: config.onComplete
+    scale: 1,
+    duration: tm.cardDuration,
+    ease: tm.ease
   });
+
+  // blending
+  animationSequence.to(contentElements, {
+    x: 0, y: 0,
+    opacity: 1,
+    duration: tm.itemDuration,
+    stagger: tm.stagger,
+    ease: EASING.smooth
+  }, `-=${tm.blending}`);
+
+  return animationSequence;
 };
 
-/**
- * 특정 위치에서 팝업 (버튼 클릭 위치 등)
- * 
- * @param {Element|Ref} popup - 팝업 요소
- * @param {Object} fromPosition - 시작 위치 { x, y }
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const popupFromPosition = (popup, fromPosition, options = {}) => {
-  const defaults = {
-    duration: 0.7,
-    ease: EASING.sharp,
-    onComplete: null
+
+export const popDownCard = (cardElement, contentElements, options = {}) => {
+  // 1. Validation check
+  if (!cardElement) return gsap.timeline();
+
+  // 2. Scoping Logic (Targeting)
+  let targets = contentElements;
+  if (typeof contentElements === 'string') {
+    targets = cardElement.querySelectorAll(contentElements);
+  }
+
+  // 3. Config Composition (popUpCard와 동일한 기본값 사용)
+  const defaultTransform = {
+    dir: { x: 0, y: 1 }, 
+    distance: 30,        
+    scale: 0.95          
   };
+
+  const defaultTime = {
+    cardDuration: DURATION.fast, 
+    itemDuration: DURATION.fast, // 사라질 땐 좀 더 빨라도 됨
+    stagger: 0.05,       // 간격도 조금 더 타이트하게
+    blending: 0.1,       
+    ease: "power2.in",   // 사라질 땐 가속도(In)가 자연스러움
+    delay: 0
+  };
+
+  const tf = { ...defaultTransform, ...options.transform };
+  const tm = { ...defaultTime, ...options.time };
   
-  const config = { ...defaults, ...options };
-  
-  // 팝업의 최종 위치 계산
-  const popupRect = popup.getBoundingClientRect();
-  const deltaX = fromPosition.x - popupRect.left;
-  const deltaY = fromPosition.y - popupRect.top;
-  
-  gsap.set(popup, {
-    x: deltaX,
-    y: deltaY,
-    scale: 0.3,
-    opacity: 0
+  // 4. Vector Calculation (돌아갈 목표 위치 계산)
+  const endPos = {
+    x: tf.dir.x * tf.distance,
+    y: tf.dir.y * tf.distance
+  };
+
+  // 5. Timeline Setup
+  const animationSequence = gsap.timeline({ 
+    delay: tm.delay, 
+    onComplete: options.onComplete 
   });
-  
-  return gsap.to(popup, {
-    x: 0,
-    y: 0,
-    scale: 1,
-    opacity: 1,
-    duration: config.duration,
-    ease: config.ease,
-    onComplete: config.onComplete
-  });
+
+  // =========================================================
+  // [Step 1: Contents Exit] (내용물 먼저 퇴장)
+  // =========================================================
+  if (targets && targets.length > 0) {
+    animationSequence.to(targets, {
+      x: endPos.x * 0.2, // 패럴랙스 위치로 복귀
+      y: endPos.y * 0.2,
+      autoAlpha: 0,      // 사라짐 (visibility: hidden 자동 처리)
+      duration: tm.itemDuration,
+      // [Reverse Stagger] 끝에서부터 사라짐 (LIFO 구조)
+      stagger: { amount: tm.stagger, from: "end" }, 
+      ease: tm.ease
+    });
+  }
+
+  // =========================================================
+  // [Step 2: Card Exit] (카드 본체 퇴장)
+  // =========================================================
+  // 내용물이 사라지기 시작할 때쯤 카드도 같이 움직임
+  animationSequence.to(cardElement, {
+    x: endPos.x, 
+    y: endPos.y,
+    autoAlpha: 0,
+    scale: tf.scale, // 작아지면서 사라짐
+    duration: tm.cardDuration,
+    ease: tm.ease
+  }, targets && targets.length > 0 ? `<+=${tm.blending}` : "<"); 
+  // targets가 없으면 바로 실행, 있으면 blending만큼 겹쳐서 실행
+
+  return animationSequence;
 };

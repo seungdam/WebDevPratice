@@ -1,189 +1,193 @@
 import gsap from 'gsap';
 import { EASING, DURATION, getElementInfo } from './common';
 
-/**
- * 요소의 높이를 자연스럽게 변경
- * (다른 레이아웃이 밀려나는 효과)
- * 
- * @param {Element|Ref} element - 대상 요소
- * @param {Number} newHeight - 새로운 높이 (px 또는 "auto")
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const resizeHeight = (element, newHeight, options = {}) => {
-  const defaults = {
+// ----------------------------------------------------------------------
+// 1. Resize Dimension (크기 변경)
+// ----------------------------------------------------------------------
+export const resizeDimension = (element, size, options = {}) => {
+  if (!element) return gsap.timeline();
+
+  const defaultTransform = { axis: 'y' };
+  const defaultTime = {
     duration: DURATION.normal,
     ease: EASING.smooth,
     onComplete: null
   };
-  
-  const config = { ...defaults, ...options };
-  
+
+  const tf = { ...defaultTransform, ...options.transform };
+  const tm = { ...defaultTime, ...options.time };
+
+  const targetProp = tf.axis === 'x' ? 'width' : 'height';
+
   return gsap.to(element, {
-    height: newHeight,
-    duration: config.duration,
-    ease: config.ease,
-    onComplete: config.onComplete
+    [targetProp]: size,
+    duration: tm.duration,
+    ease: tm.ease,
+    onComplete: tm.onComplete
   });
 };
 
-/**
- * 레이아웃이 확장될 때 주변 요소들 자연스럽게 이동
- * 
- * @param {Element|Ref} expandingElement - 확장되는 요소
- * @param {Array} affectedElements - 영향받는 요소들
- * @param {Number} expandHeight - 확장될 높이
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const expandWithPush = (expandingElement, affectedElements, expandHeight, options = {}) => {
-  const defaults = {
+// ----------------------------------------------------------------------
+// 2. Expand & Push (밀어내기)
+// ----------------------------------------------------------------------
+export const expandWithPush = (expandingElement, affectedElements, expandSize, options = {}) => 
+{
+  // Safe Casting: 배열, 단일요소, 선택자 문자열 모두 처리
+  const neighbors = gsap.utils.toArray(affectedElements); 
+
+  const defaultTransform = { dir: { x: 0, y: 1 } };
+  const defaultTime = {
     duration: DURATION.normal,
     ease: EASING.smooth,
-    stagger: 0.05,           // 주변 요소 순차 이동
+    stagger: 0.05,
     onComplete: null
   };
+
+  const tf = { ...defaultTransform, ...options.transform };
+  const tm = { ...defaultTime, ...options.time };
   
-  const config = { ...defaults, ...options };
-  
-  const animation_sequence = gsap.timeline({
-    onComplete: config.onComplete
+  const animationSequence = gsap.timeline({ onComplete: tm.onComplete });
+
+  const isHorizontal = Math.abs(tf.dir.x) > 0;
+  const sizeProp = isHorizontal ? 'width' : 'height';
+  const moveProp = isHorizontal ? 'x' : 'y';
+
+  // 1. Target Expansion
+  animationSequence.to(expandingElement, {
+    [sizeProp]: expandSize,
+    duration: tm.duration,
+    ease: tm.ease
   });
   
-  // 확장되는 요소의 높이 증가
-  animation_sequence.to(expandingElement, {
-    height: expandHeight,
-    duration: config.duration,
-    ease: config.ease
-  });
+  // 2. Push Neighbors (Relative Movement)
+  // [Fix] 단순 할당이 아니라 "+=" 연산자를 써야 현재 위치 기준에서 밀려납니다.
+  // 방향(Vector)에 따라 부호를 결정할 수도 있지만, 보통 확장이면 양수(+) 방향으로 밉니다.
+  if (neighbors.length > 0) {
+    animationSequence.to(neighbors, {
+      [moveProp]: `+=${expandSize}`,
+      duration: tm.duration,
+      stagger: tm.stagger,
+      ease: tm.ease
+    }, "<"); 
+  }
   
-  // 주변 요소들 아래로 밀어내기
-  animation_sequence.to(affectedElements, {
-    y: expandHeight,
-    duration: config.duration,
-    stagger: config.stagger,
-    ease: config.ease
-  }, "<");  // 동시 시작
-  
-  return animation_sequence;
+  return animationSequence;
 };
 
-/**
- * 공간 확보 (opacity 0 → 1 + 높이 확장)
- * 
- * @param {Element|Ref} element - 나타날 요소
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const expandSpace = (element, options = {}) => {
-  const defaults = {
+// ----------------------------------------------------------------------
+// 3. Space Management (공간 확보/제거)
+// ----------------------------------------------------------------------
+export const toggleSpace = (element, isOpen, options = {}) => {
+  if (!element) return gsap.timeline();
+
+  const defaultTime = {
     duration: DURATION.normal,
     ease: EASING.smooth,
     onStart: null,
     onComplete: null
   };
   
-  const config = { ...defaults, ...options };
-  
-  // 실제 높이 측정 (display: block 상태에서)
-  const originalDisplay = element.style.display;
-  element.style.display = 'block';
-  element.style.opacity = '0';
-  const targetHeight = element.offsetHeight;
-  element.style.height = '0px';
-  element.style.opacity = '1';
-  
-  const tl = gsap.timeline({
-    onStart: config.onStart,
-    onComplete: () => {
-      element.style.height = 'auto';  // 최종적으로 auto로
-      element.style.display = originalDisplay;
-      if (config.onComplete) config.onComplete();
+  const tm = { ...defaultTime, ...options.time };
+
+  if (isOpen) {
+    // [Fix] 무조건 'block'이 아니라, CSS에 정의된 원래 속성(flex, grid 등)을 복구
+    element.style.removeProperty('display'); 
+    
+    if (window.getComputedStyle(element).display === 'none') 
+    {
+        element.style.display = 'block'; 
     }
-  });
-  
-  tl.to(element, {
-    height: targetHeight,
-    duration: config.duration,
-    ease: config.ease
-  });
-  
-  return tl;
+
+    // Reflow 발생 (targetHeight 계산을 위해 필수)
+    const targetHeight = element.offsetHeight;
+    
+    // 애니메이션 준비
+    element.style.height = '0px';
+    element.style.opacity = '0';
+    element.style.overflow = 'hidden'; // 높이 애니메이션 중 내용 넘침 방지
+
+    const animationSequence = gsap.timeline({
+      onStart: tm.onStart,
+      onComplete: () => {
+        element.style.height = 'auto';
+        element.style.overflow = ''; // 애니메이션 끝나면 스크롤 복구
+        if (tm.onComplete) tm.onComplete();
+      }
+    });
+
+    animationSequence.to(element, {
+      height: targetHeight,
+      opacity: 1, // 투명도도 같이 켜줘야 자연스러움
+      duration: tm.duration,
+      ease: tm.ease
+    });
+    return animationSequence;
+
+  } else {
+    // Close
+    element.style.overflow = 'hidden'; // 닫힐 때 내용물 삐져나옴 방지
+
+    return gsap.to(element, {
+      height: 0,
+      opacity: 0,
+      duration: tm.duration,
+      ease: tm.ease,
+      onComplete: () => {
+        element.style.display = 'none';
+        element.style.height = ''; // 다음 오픈을 위해 style 정리
+        element.style.overflow = '';
+        if (tm.onComplete) tm.onComplete();
+      }
+    });
+  }
 };
 
-/**
- * 공간 축소 (높이 축소 + opacity 1 → 0)
- * 
- * @param {Element|Ref} element - 사라질 요소
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
-export const collapseSpace = (element, options = {}) => {
-  const defaults = {
-    duration: DURATION.normal,
-    ease: EASING.smooth,
-    onComplete: null
-  };
-  
-  const config = { ...defaults, ...options };
-  
-  return gsap.to(element, {
-    height: 0,
-    opacity: 0,
-    duration: config.duration,
-    ease: config.ease,
-    onComplete: () => {
-      element.style.display = 'none';
-      if (config.onComplete) config.onComplete();
-    }
-  });
-};
-
-/**
- * 레이아웃 재배치 (Flip 애니메이션)
- * 요소들이 새 위치로 자연스럽게 이동
- * 
- * @param {Array} elements - 재배치될 요소들
- * @param {Function} repositionCallback - 새 위치로 변경하는 함수
- * @param {Object} options - 커스텀 옵션
- * @returns {Timeline} GSAP Timeline
- */
+// ----------------------------------------------------------------------
+// 4. Smooth Reposition (FLIP Animation)
+// ----------------------------------------------------------------------
 export const smoothReposition = (elements, repositionCallback, options = {}) => {
-  const defaults = {
+  // Safe Casting
+  const targets = gsap.utils.toArray(elements);
+  if (targets.length === 0) return gsap.timeline();
+
+  const defaultTime = {
     duration: DURATION.normal,
     ease: EASING.smooth,
     stagger: 0.03
   };
+
+  const tm = { ...defaultTime, ...options.time };
   
-  const config = { ...defaults, ...options };
+  // 1. Capture State (Pre-layout)
+  // [Good] Batch Read
+  const curPositions = targets.map(el => el.getBoundingClientRect());
   
-  // 1. 현재 위치 저장
-  const curPositions = elements.map(el => getElementInfo(el));
-  
-  // 2. 새 위치로 변경 (DOM 조작)
+  // 2. Apply Layout Change
   repositionCallback();
   
-  // 3. 새 위치 측정
-  const nextPosition = elements.map(el => getElementInfo(el));
+  // 3. Capture State (Post-layout)
+  const nextPositions = targets.map(el => el.getBoundingClientRect());
   
-  // 4. 이동 거리 계산 및 애니메이션
-  const tl = gsap.timeline();
+  // 4. Animate Delta
+  const animationSequence = gsap.timeline();
   
-  elements.forEach((el, i) => {
-    const deltaX = curPositions[i].x - nextPosition[i].x;
-    const deltaY = curPositions[i].y - nextPosition[i].y;
+  targets.forEach((el, i) => {
+    if (!curPositions[i] || !nextPositions[i]) return;
+
+    const deltaX = curPositions[i].left - nextPositions[i].left; 
+    const deltaY = curPositions[i].top - nextPositions[i].top;
     
-    // 이전 위치에서 시작
+    // Invert
     gsap.set(el, { x: deltaX, y: deltaY });
     
-    // 새 위치로 이동
-    tl.to(el, {
+    // Play
+    animationSequence.to(el, {
       x: 0,
       y: 0,
-      duration: config.duration,
-      ease: config.ease
-    }, i * config.stagger);
+      duration: tm.duration,
+      ease: tm.ease
+    }, i * tm.stagger);
   });
   
-  return tl;
+  return animationSequence;
 };

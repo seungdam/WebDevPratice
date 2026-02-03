@@ -5,20 +5,15 @@ import { useGSAP } from '@gsap/react';
 import SceneController from './layouts/SceneController.jsx'
 import TitleScene from './layouts/TitleScene.jsx';
 import Scene1 from './layouts/Scene1.jsx';
-import Scene2 from './layouts/Scene2.jsx';
-import Scene3 from './layouts/Scene3.jsx';
-import Scene4 from './layouts/Scene4.jsx';
-import Scene5 from './layouts/Scene5.jsx';
-import Scene6 from './layouts/Scene6.jsx';
 
 const  Scenes = {
     "title": TitleScene,
     "Scene1": Scene1,
-    "Scene2": Scene2,
-    "Scene3": Scene3,
-    "Scene4": Scene4,
-    "Scene5": Scene5,
-    "Scene6": Scene6,
+    "Scene2": null,
+    "Scene3": null,
+    "Scene4": null,
+    "Scene5": null,
+    "Scene6": null,
 }
 
 // 2. 컴포넌트 함수 정의

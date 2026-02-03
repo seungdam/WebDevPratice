@@ -3,7 +3,16 @@ export const EASING = {
   snappy: "power3.out",
   bouncy: "back.out(1.4)",
   elastic: "elastic.out(1, 0.5)",
-  sharp: "power4.out"
+  sharp: "power4.out",
+
+  scenematic: "power2.inOut",
+  dramatic: "power3.inOut"
+};
+
+export const DIRECTION = {
+  LEFT_TO_RIGHT: 'LTR', 
+  RIGHT_TO_LEFT: 'RTL', 
+  TOP_TO_BOTTOM: 'TTB', 
 };
 
 export const DURATION = {
