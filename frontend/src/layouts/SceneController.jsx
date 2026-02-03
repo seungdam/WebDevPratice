@@ -1,8 +1,9 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import gsap from "gsap";
 import { EASING } from '../animation/common.js';
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+
 
 // GSAP 플러그인 등록
 gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -20,61 +21,101 @@ export default function SceneController({ scenes }) {
 
   // 그룹 변경 핸들러 (TopScene에서 호출)
   const hSceneGroupSelect = (group) => {
-    setActiveGroup(group); 
-    setTimeout(() => {
-      gsap.to(window, { duration: 1, scrollTo: ".content-display", ease: EASING.sharp});
-    }, 100
-    );
+    gsap.to(".headerAreas", {
+      opacity: 0,
+      duration: 0.6,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        setActiveGroup(group);
+      }
+    });
   };
-const currentSceneList = activeGroup ? sceneGroups[activeGroup] : [];
 
-return (
-    <div>
-      <div className="header-area" style={styles.header_area}>
-        {typeof TopScene === "function" && <TopScene onSelectGroup={hSceneGroupSelect} />}
-      </div>
-      <hr/>
-      {activeGroup && (
-        <div className="content-display" style={styles.content_display}>
-          {currentSceneList.map((sceneName) => {  // map -> for 문
+  useEffect(() => {
+    if (!activeGroup) return;
+
+    // 새로운 콘텐츠가 나타날 때 전체 페이드 인
+    gsap.fromTo(".contentDisplay", 
+      { opacity: 0 }, 
+      { opacity: 1, duration: 1, ease: "power2.out" }
+    );
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          gsap.fromTo(entry.target, 
+            { opacity: 0, y: 50 }, 
+            { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }
+          );
+          observer.unobserve(entry.target);
+        }});
+      }, { threshold: 0.2 })
+    });
+
+    const sceneItems = document.querySelectorAll(".scene-item");
+    sceneItems.forEach(el => observer.observe(el));
+
+
+  const currentSceneList = activeGroup ? sceneGroups[activeGroup] : [];
+
+  return (
+    <div className="layouts" style={styles.layout}>
+      {!activeGroup ? (
+        <div className="headerAreas" style={styles.headerArea}>
+          {TopScene && <TopScene onSelectGroup={hSceneGroupSelect} />}
+        </div>
+      ) : (
+        <div className="contentDisplay" style={styles.contentDisplay}>
+          {currentSceneList.map((sceneName) => { 
             const SceneComponent = scenes[sceneName];
-            return (SceneComponent ? (
-              <div key={sceneName} style={styles.scene_item} className="scene-item">
+            if(!SceneComponent) return null;
+            return (
+              <article key={sceneName} style={styles.scene_item} className="scene-item">
                 <SceneComponent />
-              </div>
-            ) : null );
+              </article>
+            );
           })}
         </div>
-      )}
+        )}
     </div>
   );
 }
 
 
 const styles = {
-  header_area: {
-    width: "100vw",
-    height: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f1ff10",
+  layout: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#f5f5f5'
   },
-  "content-display": {
-    width: "100vw",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    // 시네마틱한 전환을 위한 추가 설정
-    scrollSnapType: "y mandatory", 
+  
+  headerArea: {
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: '#ffffff',
+
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
   },
-  "scene-item": {
-    width: "100%",
-    height: "100vh",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    scrollSnapAlign: "start",
-  }
+  
+  contentDisplay: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2vh', // 스무스 스크롤 확인 가능한 간격
+    paddingBottom: '2vh'
+  },
+  
+  scene_item: {
+    width: '100vw',
+    height: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  },
+  
 };

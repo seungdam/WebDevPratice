@@ -36,7 +36,7 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '40px 20px',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f9f9fa',
   }
 };
 
