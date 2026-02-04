@@ -1,6 +1,8 @@
 import gsap from 'gsap';
 import { DURATION, EASING } from './AnimCommon'; // 가정
 
+// Plan: Gsap Wrapper 함수 구현
+
 /**
  * PopUp animation
  * @param {Element} cardElement - 메인 카드 (Layout)

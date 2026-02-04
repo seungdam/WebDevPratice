@@ -1,3 +1,5 @@
+// Plan: 상수 정의
+
 export const EASING = {
   smooth: "power2.out",
   snappy: "power3.out",
@@ -5,7 +7,7 @@ export const EASING = {
   elastic: "elastic.out(1, 0.5)",
   sharp: "power4.out",
 
-  scenematic: "power2.inOut",
+  cinematic: "power2.inOut",
   dramatic: "power3.inOut"
 };
 

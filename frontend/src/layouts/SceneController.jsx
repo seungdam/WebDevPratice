@@ -11,8 +11,8 @@ import TitleScene from "./TitleScene.jsx";
 // import AccidentScene from "./AccidentScene";
 
 
-// 계획: 일단 게임 개발할 때 했던 방식대로 컴포넌트 구성
-// Fine-State-Machine
+// Plan: 일단 게임 개발할 때 했던 방식대로 컴포넌트 구성
+// Using Fine-State-Machine
 
 const SCENE_GROUPS = 
 {
