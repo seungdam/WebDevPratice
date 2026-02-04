@@ -1,9 +1,9 @@
 import gsap from 'gsap';
-import { DURATION, EASING } from './common'; // 가정
+import { DURATION, EASING } from './AnimCommon'; // 가정
 
 /**
  * PopUp animation
- * * @param {Element} cardElement - 메인 카드 (Layout)
+ * @param {Element} cardElement - 메인 카드 (Layout)
  * @param {Element|Array} contentElements - 내부 아이템들 (Context)
  * @param {Object} options - 설정 객체 (transform, time 분리)
  */
