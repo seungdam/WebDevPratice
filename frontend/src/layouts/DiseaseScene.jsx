@@ -6,99 +6,117 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 gsap.registerPlugin(ScrollToPlugin);
 import FadeInSection from './FadeInSection.jsx';
 
+
+import imgBrain from  '../assets/brain2.png';
+import imgLung from   '../assets/lung2.png';
+import imgHeart from  '../assets/heart2.png';
+import imgLiver from  '../assets/liver2.png'; // river.png -> Liver로 사용
+import imgDigest from '../assets/digestive2.png';
+import imgKidney from '../assets/urology2.png';
+import imgEndo from   '../assets/Endocrine2.png';
+import imgRepro from  '../assets/man2.png'; // 또는 여성.png
+
+
 const DiseaseScene = () => 
 {
   const [selected, setSelected] = useState(null);
   const isOpen = !!selected;
 
-  const infoCardRef = useRef(null);
-  
-  // contents animation
+  const rightPanelRef =useRef(null);
+  const contentRef = useRef(null);
+  // Contents Animation
   useEffect(() => 
   {
-    if (!selected || !infoCardRef.current) // idle state
+    if (!isOpen || !contentRef.current) // idle state
     {
       return;
     }
-    // 2. 기존 애니메이션 킬 (빠르게 다른 장기 클릭 시 꼬임 방지)
-    const ctx = gsap.context(() => 
+    // 2. Kill prev-rendering animation (빠르게 다른 장기 클릭 시 꼬임 방지)
+    let ctx = gsap.context(() => 
     {  
-      // 3. popUp animations
-      // timing supposed to be collaborate with css transition
-      popUpCard(infoCardRef.current, ".infoItem", 
+      if(isOpen && contentRef.current)
+      // 3. Pre-defined PopUp animation function
+      // CSS Transition과 타이밍 맞추기 유용함.
+      popUpCard(contentRef.current, ".popUpItem", 
       {
         transform: 
         { 
-          yOffset: 50, // 아래에서 위로
+          yOffset: 60, // 아래에서 위로
           scale: 0.95 
         },
         time: 
         {
-          delay: 0.2, // 패널이 어느정도 열린 뒤 시작
-          stagger: 0.1, // 텍스트들이 다다닥 뜨는 효과 (★핵심)
-          itemDuration: 0.6,
+          delay: 0.4, // 패널이 어느정도 열린 뒤 시작
+          stagger: 0.1, // stagger: 아이템이 다닥다닥뜨는 효과
+          cardDuration: 0.6,
+          itemDuration: 0.5,
           ease: "back.out(1.2)" // 살짝 튕기는 맛
         }
       });
 
-    }, infoCardRef); // Scope 지정
+    }, contentRef); // Scope 지정
 
     return () => ctx.revert(); // CleanUp
 
   }, [selected]); // selected가 바뀔 때마다 실행 (심장 -> 뇌 클릭 시 다시 재생)
 
+
+  // Plan: 닫을 시, Scrolling
   const hOrganClick = (organ) => 
   {
-    setSelected(prev => (prev?.id === organ.id ? null : organ));
-    gsap.to(window, 
+    const nextSelected = selected?.id === organ.id ? null : organ;
+    setSelected(nextSelected); // 같은거 Select 시 닫기
+    
+    if(rightPanelRef.current)
     {
-    duration: 0.8, // ★ 핵심: CSS transition 시간과 똑같이 맞춤
-    scrollTo: { y: 0, offsetY: 0 },   // 맨 위로
-    ease: MyAnim.EASING.smooth, // 훨씬 고급스러운 감속
-    overwrite: "auto" // 사용자가 마우스 휠 굴리면 애니메이션 즉시 중단 (UX 보호)
-    });
-
+      gsap.to(rightPanelRef.current, 
+      {
+      duration: 0.8, 
+      scrollTo: { y: 0 },
+      ease: MyAnim.EASING.smooth,
+      overwrite: "auto"
+      });
+    }
   }
-  
-  // [Handler] 닫기 버튼
-  const hClose = () => 
-  {
-    setSelected(null);
-  };
 
   return (
     <div className="container" style={styles.container}>
       {/* Scene Title*/}
-      <div className="sceneLabel" style={{ padding: '20px' }}>
+      <div className="titleLabel" style={styles.titleLabel}>
         <h1>Human Anatomy Analysis</h1>
       </div>
 
-      <div className="panelContainer" style={styles.panelContainer}>
-        {/* Left Panel*/}
-        <aside
+      <div style= {styles.panelContainer}>
+      {/* Left Panel*/}
+      <aside
           className="leftStickyPanel"  // 
           style={{
             ...styles.leftStickyPanel,      // Panel Flex Animation: 열리면 4, 닫히면 10
             flex: isOpen ? 4 : 10, 
           }}
-        >
-          {/* Visual Wrapper -> sticky로 고정 우측 패널 스크롤링*/}
+      >
           <div style={styles.visualWrapper}>
-            <div style={styles.bodyMapPlaceholder}>
+            <div style={{...styles.bodyMapPlaceholder,
+              transform: isOpen ? 'scale(0.7)' : 'scale(1)',
+              transition: 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)'}
+            } >
               {/*Organ Buttons*/}
+              
               {ORGAN_DATA.map((organ) => (
                 <button
                   key={organ.id}
-                  onClick={() => setSelected(organ)}
+                  onClick={() =>hOrganClick(organ)}
                   style={{
-                  ...styles.organBtn(organ.top, organ.left),
+                  ...styles.organBtn(organ.top, organ.left,organ.width, organ.height),
                   opacity: isOpen && selected.id !== organ.id ? 0.3 : 1,
                   transform: isOpen && selected.id === organ.id 
                     ? 'translate(-50%, -50%) scale(1.1)' 
                     : 'translate(-50%, -50%) scale(1)'
                   }}
                 >
-                {organ.name}
+                
+                {/* 이미지 아이콘 */}
+                <img src={organ.img} alt={organ.name} style={styles.organIcon} />
               </button>
           ))}
           </div>
@@ -111,37 +129,73 @@ const DiseaseScene = () =>
         </div>
       </aside>
 
-      {/*Right Panel: Info Card*/}
+      {/*Right Panel: Info*/}
       <main
+        ref={rightPanelRef}
         className="rightContentPanel"
         style={{
             ...styles.rightContentPanel,
             flex: isOpen ? 6 : 0.0001,  // 열리면 6, 닫히면 거의 0
             opacity: isOpen ? 1 : 0,    // 닫힐 때 내용물 바로 안 보이게 처리
             pointerEvents: isOpen ? 'auto' : 'none', 
+            
         }}
       >
-      {/* GSAP Target Wrapper */}
-      <div ref={infoCardRef} style={styles.infoCard}>
+        {/* GSAP Target Wrapper */}
         {selected && (
-          <>
-            <h2 className="infoItem" style={styles.title}>{selected.title}</h2>
-            <div className="infoItem" style={styles.decoLine}></div>
-            <p className="infoItem" style={styles.script}>{selected.script}</p>
-            <div className="infoItem" style={styles.stats}>{selected.stats}</div>
+        <div className="contentPanel" style={styles.articleContainer} ref={contentRef}>    
+          {/* Header Section */}
+            <div className="popUpItem">
+              <header style={styles.articleHeader}>
+                <span style={styles.tag}>MORTALITY DATA</span>
+                <h1 style={styles.mainTitle}>{selected.title}</h1>
+                <p style={styles.introScript}>{selected.script}</p>
+              </header>
+              <div style={styles.divider}></div>
+            </div>
+
+            {/* Key Statistics Section */}
+            <section className="popUpItem" style={styles.section}>
+              <h3 style={styles.subTitle}>Key Statistics</h3>
+              <div style={styles.statBox}>
+                  <div style={styles.statRow}>
+                    <span>연간 사망자 수</span>
+                    <strong style={{color: '#e17055'}}>14,203명</strong>
+                  </div>
+                  <div style={styles.statRow}>
+                    <span>주요 원인</span>
+                    <strong>{selected.name}암, 만성질환</strong>
+                  </div>
+              </div>
+            </section>
+
+            {/* Chart Section */}
+            <FadeInSection>
+              <section className="popUpItem" style={styles.section}>
+                <h3 style={styles.subTitle}>Annual Trend</h3>
+                <div style={styles.chartPlaceholder}>
+                    <p> Chart Area</p>
+                </div>
+              </section>
+            </FadeInSection>
+
+            {/* Analysis Text */}
+            <FadeInSection>
+              <section className="popUpItem" style={styles.section}>
+                <h3 style={styles.subTitle}>Medical Analysis</h3>
+                <p style={styles.longText}>
+                  해당 질병은 조기 발견 시 생존율이 높으나, 초기 증상이 미미하여...
+                  (스크롤을 내리면 계속 이어지는 긴 텍스트)
+                </p>
+              </section>
+            </FadeInSection>
             
-            <button 
-              className="infoItem" 
-              style={styles.closeBtn}
-              onClick={hClose}
-            >
-              Close View
-            </button>
-          </>
-        )}
-      </div>
+            {/* Footer Padding */}
+            <div style={{height: '100px'}}></div>    
+        </div>
+        )} 
       </main>
-    </div>
+      </div>
     </div>
   );
 };
@@ -150,18 +204,28 @@ const styles =
 {
   container: 
   {
-    width: "100%", height: "100vh",
-    display: "flex", flexDirection: "column",
+    width: "100%",
+    height: "100vh",
+    display: "flex",
+    flexDirection: "column",
     backgroundColor: "#F5F7F9",
-    overflow: "hidden"
+    fontFamily: '"Pretendard", sans-serif',
   },
   
+  titleLabel: 
+  {
+    padding: '20px',
+    backgroundColor: "#F5F7F9",
+  },
+
   panelContainer: 
   {
-    flex: 1,
-    display: "flex", flexDirection: "row",
-    position: "relative",
-    width: "100%",
+    width: "100%", 
+    display: "flex", 
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#F5F7F9",
+    fontFamily: '"Pretendard", sans-serif',
   },
 
   // [Left Panel] : 장기 모형
@@ -170,7 +234,7 @@ const styles =
     // Plan: leftPanel은 sticky로 레이아웃 고정
     position: "sticky",
     top: 0,
-    height: "100vh",
+    height: "calc(100vh)",
 
     // Plan: 레이아웃 배치 변환은 복잡한 GSAP 대신 CSS Transition 활용
     transition: "flex 0.8s cubic-bezier(0.25, 1, 0.5, 1)", 
@@ -180,9 +244,17 @@ const styles =
     alignItems: "center",
     backgroundColor: "#Eaecef", // 배경색 살짝 변경
     
-    overflow: "hidden", // 내부 스크롤 방지
-    
     zIndex: 10,
+    borderRight: '1px solid rgba(0,0,0,0.05)',
+  },
+
+  guideText: 
+  {
+    marginTop: '9rem',
+    color: '#636E72',
+    fontWeight: 600,
+    animation: 'fadeIn 1s ease',
+    zIndex: 30
   },
 
   // [Right Panel]: 통계 자료 및 콘텐츠
@@ -190,40 +262,113 @@ const styles =
   {
     // Flex + Opacity 변화 동시에
     transition: "flex 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease",
-    display: "flex", justifyContent: "center", alignItems: "center",
+    display: "flex",
+    justifyContent: "center",
     backgroundColor: "#FFFFFF",
-    overflow: "hidden"
+    minHeight: "100vh",
+    overflowY: "auto",
+    overflowX: "hidden",
+  },
+  
+  visualWrapper: 
+  {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  organBtn: (top, left) => ({
+  bodyMapPlaceholder: 
+  {
+    width: '300px',
+    height: '500px',
+    position: 'relative',
+    // backgroundImage: 'url(...)', // Plan: 인체 실루엣 추가 예정
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+  },
+
+  articleContainer: 
+  {
+    width: '100%',
+    maxWidth: '1280px', // 가독성을 위한 최대 너비 제한
+    padding: '80px 40px', // 넉넉한 상하 패딩
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '60px', // 섹션 간 간격
+  },
+
+  // organBtn: (top, left) => ({
+  //   position: 'absolute',
+  //   top: `${top}%`, left: `${left}%`,
+  //   transform: 'translate(-50%, -50%)',
+  //   padding: '10px 20px',
+  //   backgroundColor: '#fff',
+  //   border: '1px solid rgba(0,0,0,0.1)',
+  //   borderRadius: '30px',
+  //   cursor: 'pointer',
+  //   fontWeight: 'bold',
+  //   boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+  //   transition: 'all 0.3s ease', // 버튼 자체의 호버/딤 효과는 CSS로
+  //   zIndex: 10
+  // }),
+
+  organBtn: (top, left, width, height, zIndex) => ({
     position: 'absolute',
-    top: `${top}%`, left: `${left}%`,
+    top: `${top}%`, 
+    left: `${left}%`,
     transform: 'translate(-50%, -50%)',
-    padding: '10px 20px',
-    backgroundColor: '#fff',
-    border: '1px solid rgba(0,0,0,0.1)',
-    borderRadius: '30px',
+    
+    width: `${width}px`,  
+    height: `${height}px`,
+    
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    
+
+    backgroundColor: 'transparent', 
+    border: 'none', 
+    backdropFilter: 'none', 
+    boxShadow: 'none', 
+    
+    padding: '0',
+    
     cursor: 'pointer',
-    fontWeight: 'bold',
-    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-    transition: 'all 0.3s ease', // 버튼 자체의 호버/딤 효과는 CSS로
-    zIndex: 10
+    zIndex: zIndex, 
+    
+    transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+    
+    WebkitTapHighlightColor: 'transparent', 
   }),
 
-  // [Info Card Content]
-  infoCard: { 
-    width: '100%', maxWidth: '500px',
-    padding: '40px',
-    display: 'flex', flexDirection: 'column',
-    gap: '20px'
+  // [수정] 이미지 아이콘: 버튼을 가득 채우도록 변경
+  organIcon: {
+    width: '100%',     // 너비 꽉 채움
+    height: '100%',     // 높이의 85% 차지 (나머지 15%는 텍스트)
+    objectFit: 'contain', // 비율 유지하면서 꽉 차게
+    filter: 'drop-shadow(0 5px 5px rgba(0,0,0,0.2))', // 이미지 자체 그림자 (입체감)
+    marginBottom: '5px'
   },
-  
-  title: { fontSize: '2.5rem', margin: 0, color: '#2d3436' },
-  decoLine: { width: '40px', height: '4px', backgroundColor: '#e17055' },
-  script: { fontSize: '1rem', lineHeight: '1.6', color: '#636e72' },
-  stats: { padding: '15px', backgroundColor: '#f1f2f6', borderRadius: '10px', fontWeight: 'bold' },
-  
-  closeBtn: {
+
+
+  articleHeader: { marginBottom: '20px' },
+  tag: { fontSize: '0.8rem', fontWeight: 800, color: '#b2bec3', letterSpacing: '0.1em' },
+  mainTitle: { fontSize: '3.5rem', fontWeight: 800, color: '#2d3436', margin: '10px 0 20px 0', lineHeight: 1 },
+  introScript: { fontSize: '1.2rem', lineHeight: '1.7', color: '#636e72' },
+  divider: { width: '100%', height: '1px', backgroundColor: '#dfe6e9' },
+  section: { display: 'flex', flexDirection: 'column', gap: '20px' },
+  subTitle: { fontSize: '1.5rem', fontWeight: 700, color: '#2d3436', borderLeft: '4px solid #2d3436', paddingLeft: '15px' },
+  statBox: { backgroundColor: '#F8F9FA', padding: '30px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '15px' },
+  statRow: { display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', borderBottom: '1px dashed #dfe6e9', paddingBottom: '10px' },
+  chartPlaceholder: { width: '100%', height: '300px', backgroundColor: '#fff', border: '2px solid #f1f2f6', borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b2bec3' },
+  longText: { fontSize: '1.1rem', lineHeight: '1.8', color: '#4a4a4a', wordBreak: 'keep-all' },  
+  closeBtn: 
+  {
     padding: '10px 20px', alignSelf: 'flex-start',
     backgroundColor: '#2d3436', color: '#fff',
     border: 'none', borderRadius: '5px', cursor: 'pointer'
@@ -231,59 +376,89 @@ const styles =
 };
 
 const ORGAN_DATA = [
-  {
-    id: 'brain',
-    name: '뇌',
-    top: 8,
-    left: 50,
-    title: 'Brain (Cerebrum)',
-    script: '인체의 중앙 제어 장치입니다. 감각 정보의 통합, 운동 지시, 기억 및 사고를 담당하며 전체 에너지의 20%를 소비합니다.',
-    stats: '신경세포 수: 약 860억 개'
+  { 
+    id: 'brain', 
+    name: 'Brain', 
+    title: 'Nervous System', 
+    script: '뇌와 신경계 데이터 분석', 
+    img: imgBrain,
+    top: 60, left: 50,
+    width: 800, height: 800, // 뇌는 좀 둥글고 큼
+    zIndex: 5
   },
-  {
-    id: 'lungs',
-    name: '폐',
-    top: 25,
-    left: 50,
-    title: 'Lungs (Pulmonary)',
-    script: '호흡을 통해 산소를 받아들이고 이산화탄소를 배출합니다. 좌우 한 쌍으로 구성되며 혈액의 가스 교환이 일어나는 핵심 장기입니다.',
-    stats: '평균 호흡수: 12~20회/min'
+
+  { 
+    id: 'lungs', 
+    name: 'Lungs', 
+    title: 'Respiratory', 
+    script: '호흡기계 질환 분석', 
+    img: imgLung, 
+    top: 50, left: 50,
+    width: 300, height: 400 // 폐는 좌우로 넓고 큼
+    ,zIndex: 6
   },
-  {
-    id: 'heart',
-    name: '심혈관',
-    top: 32,
-    left: 45,
-    title: 'Heart (Cardiovascular)',
-    script: '강력한 근육 펌프 작용을 통해 온몸으로 혈액을 순환시킵니다. 평생 동안 단 한 순간도 쉬지 않고 박동을 유지합니다.',
-    stats: '평균 심박수: 72 BPM'
+
+  { 
+    id: 'heart', 
+    name: 'Heart', 
+    title: 'Cardiovascular', 
+    script: '심혈관계 질환 분석', 
+    img: imgHeart, 
+    top: 35, left: 140,
+    width: 300, height: 300 // 심장은 적당한 크기
+    ,zIndex: 10
   },
-  {
-    id: 'liver',
-    name: '간',
-    top: 45,
-    left: 42,
-    title: 'Liver (Hepatic)',
-    script: '인체의 화학 공장으로 불립니다. 500가지 이상의 기능을 수행하며, 특히 해독 작용과 영양소 저장 및 대사에 중추적인 역할을 합니다.',
-    stats: '재생 능력: 최대 75% 복구 가능'
+
+  { 
+    id: 'liver', 
+    name: 'Liver', 
+    title: 'Hepatic System', 
+    script: '간 및 대사 질환 분석', 
+    img: imgLiver, 
+    top: 30, left: -40
+    ,width: 400, height: 300 
+    ,zIndex: 9
   },
-  {
-    id: 'pancreas',
-    name: '췌장',
-    top: 48,
-    left: 58,
-    title: 'Pancreas',
-    script: '소화 효소와 인슐린 같은 호르몬을 분비합니다. 혈당 조절에 핵심적인 역할을 하며 소화와 대사 모두에 관여합니다.',
-    stats: '인슐린 분비 능력: 정상'
+
+  { 
+    id: 'endocrine', 
+    name: 'Endocrine', 
+    title: 'Endocrine System', 
+    script: '췌장 및 내분비계 분석', 
+    img: imgEndo, 
+    top: 70, left: -50,
+    width: 300, height: 300 // 폐는 좌우로 넓고 큼
+    ,zIndex: 9
   },
-  {
-    id: 'duodenum',
-    name: '십이지장',
-    top: 55,
-    left: 50,
-    title: 'Duodenum',
-    script: '위에서 넘어온 산성 음식물을 중화시키고 본격적인 소화가 시작되는 소장의 첫 부분입니다. 손가락 12개를 옆으로 늘어놓은 길이라 하여 붙여진 이름입니다.',
-    stats: '길이: 약 25~30cm'
+  { 
+    id: 'digestive', 
+    name: 'Digestive', 
+    title: 'Digestive System', 
+    script: '소화기계 질환 분석', 
+    img: imgDigest, 
+    top: 110, left: 45,
+    width: 600, height: 500 
+    ,zIndex: 3
+  },
+  { 
+    id: 'kidney', 
+    name: 'Kidneys', 
+    title: 'Urinary System', 
+    script: '신장 및 비뇨기계 분석', 
+    img: imgKidney, 
+    top: 130, left: -30,
+    width: 300, height: 250
+    ,zIndex: 9
+  },
+  { 
+    id: 'repro', 
+    name: 'Reproductive', 
+    title: 'Reproductive', 
+    script: '생식기계 질환 분석', 
+    img: imgRepro, 
+    top: 130, left: 130,
+    width: 300, height: 300
+    ,zIndex: 9
   }
 ];
 
