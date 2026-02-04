@@ -31,12 +31,20 @@ export default function FadeInSection({ children, delay = 0 })
                 delay: delay // 필요하면 딜레이 추가
               }
             );
-            // 한 번 실행 후 관찰 중단
-            observer.unobserve(element);
+          }
+          else 
+          {
+             gsap.to(element, 
+             { 
+              opacity: 0, 
+              y: 50, // 원래 위치로 되돌림
+              duration: 0.3, 
+              ease: "power2.in" // 나갈 때는 조금 빠르게
+              });
           }
         });
       },
-      { threshold: 0.1 } // 10%만 보여도 실행
+      { threshold: 0, rootMargin: "-10% 0px -10% 0px" } 
     );
     observer.observe(element);
     return () => observer.disconnect();
