@@ -3,23 +3,15 @@ import React, { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 
 import SceneController from './layouts/SceneController.jsx'
-import TitleScene from './layouts/TitleScene.jsx';
-import Scene1 from './layouts/Scene1.jsx';
+import TitleScene from      './layouts/TitleScene.jsx';
+import DiseaseScene from    './layouts/DiseaseScene.jsx';
 
-const  Scenes = {
-    "title": TitleScene,
-    "Scene1": Scene1,
-    "Scene2": null,
-    "Scene3": null,
-    "Scene4": null,
-    "Scene5": null,
-    "Scene6": null,
-}
+
 
 // 2. 컴포넌트 함수 정의
 function App() 
 {
-  return ( <SceneController scenes={Scenes} />);
+  return ( <SceneController/>);
 }
 
 // App.jsx styles
