@@ -6,6 +6,10 @@ import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import FadeInSection from '../animation/FadeInSection.jsx';
 import OrganButton from './OrganButton.jsx'
 import DiseaseChart from '../chart/RankingChart.jsx';
+import TrendLineChart from '../chart/TrendChart.jsx';
+
+import { MEDICAL_ANALYSIS_DATA } from '../constant/script.js'
+import {MedicalAnalysis} from './InfoSection.jsx';
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -19,6 +23,28 @@ const DiseaseScene = () =>
   const rightPanelRef =useRef(null);
   const [hoveredId, setHoveredId] = useState(null); // z-index 제어용
   const contentRef = useRef(null);
+  const [showChart, setShowChart] = useState(false);
+  
+  useEffect(() => 
+  {
+    if (selected) 
+      {
+     
+      setShowChart(false);
+      
+     
+      const timer = setTimeout(() => 
+      {
+        setShowChart(true);
+      }, 500); 
+      return () => clearTimeout(timer);
+    } 
+    else 
+    {
+
+      setShowChart(false);
+    }
+  }, [selected]); // selected가 바뀔 때마다 실행
 
   // Contents Animation
   useEffect(() => 
@@ -27,7 +53,7 @@ const DiseaseScene = () =>
     {
       return;
     }
-    
+  
     let ctx = gsap.context(() => 
     {  
       if(isOpen && contentRef.current)
@@ -153,16 +179,17 @@ const DiseaseScene = () =>
             {/* Key Statistics Section */}
             <section className="popUpItem" style={styles.section}>
               <h3 style={styles.subTitle}>Key Statistics</h3>
-              <div style={styles.statBox}>
-                  <div style={styles.statRow}>
-                    <span>연간 사망자 수</span>
-                    <strong style={{color: '#e17055'}}>14,203명</strong>
-                  </div>
-                  <div style={styles.statRow}>
-                    <span>주요 원인</span>
-                    <strong>{selected.name}암, 만성질환</strong>
-                  </div>
-              </div>
+               <div style={{ width: '100%', height: '700px', position: 'relative' }}>
+                {
+                  showChart && (
+                  <div >
+                <TrendLineChart 
+                key={selected.id + "_trend"} 
+                selectedObject={selected.id} 
+                />
+            </div>
+            )}
+            </div>  
             </section>
 
             {/* Chart Section */}
@@ -192,11 +219,10 @@ const DiseaseScene = () =>
             {/* Analysis Text */}
             <FadeInSection>
               <section className="popUpItem" style={styles.section}>
-                <h3 style={styles.subTitle}>Medical Analysis</h3>
-                <p style={styles.longText}>
-                  해당 질병은 조기 발견 시 생존율이 높으나, 초기 증상이 미미하여...
-                  (스크롤을 내리면 계속 이어지는 긴 텍스트)
-                </p>
+              {/* MedicalAnalysis 컴포넌트에 해당 장기의 배열([])을 그대로 전달 */}
+                <MedicalAnalysis 
+                data={MEDICAL_ANALYSIS_DATA[selected.id]} 
+              />
               </section>
             </FadeInSection>
             
@@ -210,6 +236,7 @@ const DiseaseScene = () =>
   );
 };
 
+
 const styles = 
 {
   container: 
@@ -218,14 +245,18 @@ const styles =
     height: "100vh",
     display: "flex",
     flexDirection: "column",
-    backgroundColor: "#F5F7F9",
+    // ★ [수정] 전체적으로 아주 밝은(화이트) 톤 유지
+    backgroundColor: "#FFFFFF", 
     fontFamily: '"Pretendard", sans-serif',
   },
   
   titleLabel: 
   {
-    padding: '20px',
-    backgroundColor: "#F5F7F9",
+    padding: '25px 30px', 
+    // ★ [수정] 배경을 투명하게 하거나 아주 연한 붉은 회색
+    backgroundColor: "#FFFAFA", // Snow White (아주 미세한 붉은기)
+    // 헤더 아래 경계선을 은은하게
+    borderBottom: '1px solid rgba(244, 67, 54, 0.1)', 
   },
 
   panelContainer: 
@@ -234,38 +265,50 @@ const styles =
     display: "flex", 
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#F5F7F9",
+    backgroundColor: "#FFFFFF",
     fontFamily: '"Pretendard", sans-serif',
   },
 
-  // [Left Panel] : 장기 모형
+  // [Left Panel] : 장기 모형 배경 (여기가 핵심!)
   leftStickyPanel: 
   {
-    // Plan: leftPanel은 sticky로 레이아웃 고정
     position: "sticky",
     top: 0,
-    height: "calc(100vh)",
+    height: "100vh", 
 
-    // Plan: 레이아웃 배치 변환은 복잡한 GSAP 대신 CSS Transition 활용
     transition: "flex 0.8s cubic-bezier(0.25, 1, 0.5, 1)", 
     display: "flex", 
-    
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#Eaecef", // 배경색 살짝 변경
+    
+    // ★ [핵심] "은은한 필터" 느낌 구현
+    // 흰색 베이스 위에 + 타이틀 씬의 붉은색을 아주 투명하게(0.05 ~ 0.15) 그라데이션으로 씌움
+    background: `
+      linear-gradient(
+        180deg, 
+        rgba(244, 67, 54, 0.05) 0%,   /* 위쪽: 거의 투명한 붉은 기운 */
+        rgba(198, 40, 40, 0.15) 100%  /* 아래쪽: 조금 더 차분한 붉은 틴트 */
+      ),
+      #FFFFFF /* 베이스 컬러 */
+    `,
     
     zIndex: 10,
-    borderRight: '1px solid rgba(0,0,0,0.05)',
+    // 오른쪽 경계선도 은은한 붉은색으로
+    borderRight: '1px solid rgba(244, 67, 54, 0.1)', 
+    overflow: 'hidden'
   },
 
+  // 가이드 텍스트 (배경이 밝아졌으므로 텍스트는 진하게)
   guideText: 
   {
     marginTop: '9rem',
-    color: '#636E72',
+    color: '#E57373', // 부드러운 파스텔 레드 텍스트
     fontWeight: 600,
+    letterSpacing: '0.05em',
     animation: 'fadeIn 1s ease',
     zIndex: 30
   },
+
 
   // [Right Panel]: 통계 자료 및 콘텐츠
   rightContentPanel: 
@@ -293,13 +336,18 @@ const styles =
 
   bodyMapPlaceholder: 
   {
-    width: '300px',
-    height: '500px',
+    //
+    width: '80%',       
+    maxWidth: '500px',  
+    aspectRatio: '1 / 2', 
+    
     position: 'relative',
-    // backgroundImage: 'url(...)', // Plan: 인체 실루엣 추가 예정
     backgroundSize: 'contain',
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
+    
+    // (선택사항) 모바일에서 너무 작아지는 게 싫다면 최소 높이 추가
+    minHeight: '300px', 
   },
 
   articleContainer: 
