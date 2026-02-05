@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // 데이터 경로 (기존과 동일)
-import rawData from '../../../public/chart_data_v2.json'
+import rawData from '../../../public/chart_data_v3.json'
 
 import {DEATH_CODE_MAP} from  '../constant/death_code_map.js';
 
@@ -33,30 +33,43 @@ const CheckCodeMatch = (dataCode, rules) =>
     });
 };
 
-const TrendLineChart = ({ selectedOrgan }) => 
+const TrendLineChart = ({ selectedObject }) => 
 {
   
-  // 1. 데이터 가공: 선택된 장기의 연도별 Top 3 질병 추출
-  const chartData = useMemo(() => 
-  {
-    if (!selectedOrgan || !rawData) return [];
+  // 1. 데이터 가공: 선택된 연도별 Top 3 질병/사고 추출
+ const chartData = useMemo(() => 
+{
+    if (!selectedObject || !rawData) return [];
     
-    const targetRules = DEATH_CODE_MAP[selectedOrgan] || [];
+    const targetRules = DEATH_CODE_MAP[selectedObject] || [];
     
-    // 1-1. 해당 장기에 속하는 모든 데이터 필터링
     const filtered = rawData.filter(item => 
     {
         const code = item.cause_code || item.cat || '';
         return CheckCodeMatch(code, targetRules);
     });
 
-    // 1-2. 질병 이름별로 전체(모든 연도, 모든 나이) 사망자 수 합산하여 Top 3 선정
-    const totalCountByName = {};
+    // 연도별, 질병명별로 그룹화하여 합산
+    const yearDiseaseMap = {};
+    
     filtered.forEach(item => 
     {
+        const year = item.stat_year;
         const name = item.cause_name || item.name;
-        const val = typeof item.total_death_count === 'number' ? item.total_death_count : 0;
-        totalCountByName[name] = (totalCountByName[name] || 0) + val;
+        const count = typeof item.total_death_count === 'number' ? item.total_death_count : 0;
+        
+        if (!yearDiseaseMap[year]) yearDiseaseMap[year] = {};
+        yearDiseaseMap[year][name] = (yearDiseaseMap[year][name] || 0) + count;
+    });
+
+    // 전체 기간에서 Top 3 질병 선정
+    const totalCountByName = {};
+    Object.values(yearDiseaseMap).forEach(yearData => 
+    {
+        Object.entries(yearData).forEach(([name, count]) => 
+        {
+            totalCountByName[name] = (totalCountByName[name] || 0) + count;
+        });
     });
 
     const top3Diseases = Object.entries(totalCountByName)
@@ -64,27 +77,23 @@ const TrendLineChart = ({ selectedOrgan }) =>
         .slice(0, 3)
         .map(entry => entry[0]);
 
-    // 1-3. 연도별로 데이터 재구성 (Pivot)
-    // 목표 형태: [{ year: 2018, '뇌졸중': 100, '뇌출혈': 50 }, { year: 2019, ... }]
-    const years = [...new Set(filtered.map(d => d.stat_year))].sort();
+    // 차트 데이터 생성
+    const years = Object.keys(yearDiseaseMap).sort();
     
     const result = years.map(year => 
     {
-        const row = { year };
+        const row = { year: parseInt(year) };
         
         top3Diseases.forEach(disease => 
         {
-            // 해당 연도, 해당 질병의 모든 나이대 사망자 합산
-            const sum = filtered
-                .filter(d => d.stat_year === year && (d.cause_name || d.name) === disease)
-                .reduce((acc, curr) => acc + (curr.total_death_count || 0), 0);
-            row[disease] = sum;
+            row[disease] = yearDiseaseMap[year][disease] || 0;
         });
+        
         return row;
     });
 
     return { data: result, lines: top3Diseases };
-  }, [selectedOrgan]);
+}, [selectedObject]);
 
   if (!chartData.data || chartData.data.length === 0) return null;
 
