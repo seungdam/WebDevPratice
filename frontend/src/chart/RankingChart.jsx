@@ -182,11 +182,11 @@ const RankingChart = ({ selectedObject }) =>
       
       
       {/* [Chart] Racing Bar Effect */}
-      <div style={{ flex: 1, minHeight: '0', position: 'relative', marginTop: '10px' }}>
+      <div style={{ flex: 1, minHeight: 0, minWidth: 0, position: 'relative', marginTop: '10px' }}>
         {processedData.length === 0 ? (
           <div style={styles.centerMsg}>해당 연도/조건의 데이터가 없습니다.</div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer minWidth={100} minHeight={100} width="100%" height="100%">
             <BarChart 
               layout="vertical" 
               data={processedData} 

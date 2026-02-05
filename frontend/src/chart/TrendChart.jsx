@@ -35,10 +35,8 @@ const CheckCodeMatch = (dataCode, rules) =>
 
 const TrendLineChart = ({ selectedObject }) => 
 {
-  
-  // 1. 데이터 가공: 선택된 연도별 Top 3 질병/사고 추출
- const chartData = useMemo(() => 
-{
+  const chartData = useMemo(() => 
+  {
     if (!selectedObject || !rawData) return [];
     
     const targetRules = DEATH_CODE_MAP[selectedObject] || [];
@@ -49,7 +47,6 @@ const TrendLineChart = ({ selectedObject }) =>
         return CheckCodeMatch(code, targetRules);
     });
 
-    // 연도별, 질병명별로 그룹화하여 합산
     const yearDiseaseMap = {};
     
     filtered.forEach(item => 
@@ -62,7 +59,6 @@ const TrendLineChart = ({ selectedObject }) =>
         yearDiseaseMap[year][name] = (yearDiseaseMap[year][name] || 0) + count;
     });
 
-    // 전체 기간에서 Top 3 질병 선정
     const totalCountByName = {};
     Object.values(yearDiseaseMap).forEach(yearData => 
     {
@@ -77,7 +73,6 @@ const TrendLineChart = ({ selectedObject }) =>
         .slice(0, 3)
         .map(entry => entry[0]);
 
-    // 차트 데이터 생성
     const years = Object.keys(yearDiseaseMap).sort();
     
     const result = years.map(year => 
@@ -92,44 +87,125 @@ const TrendLineChart = ({ selectedObject }) =>
         return row;
     });
 
-    return { data: result, lines: top3Diseases };
-}, [selectedObject]);
+    // 통계 계산 추가
+    const totalDeaths = Object.values(totalCountByName).reduce((a, b) => a + b, 0);
+    const mainCause = top3Diseases[0] || '알 수 없음';
+
+    return { 
+      data: result, 
+      lines: top3Diseases,
+      stats: {
+        totalDeaths: totalDeaths.toLocaleString() + '명',
+        mainCause: mainCause
+      }
+    };
+  }, [selectedObject]);
 
   if (!chartData.data || chartData.data.length === 0) return null;
 
-  const colors = ['#ff6b6b', '#339af0', '#51cf66']; // 빨강, 파랑, 초록
+  const colors = ['#ff6b6b', '#339af0', '#51cf66'];
 
   return (
-    <div style={{ width: '100%', height: '300px', marginTop: '30px', background: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-      <h3 style={{ fontSize: '1rem', marginBottom: '20px', color: '#495057', textAlign: 'center' }}>
-        최근 5년 추이 (Top 3)
-      </h3>
-      <ResponsiveContainer width="100%" height="80%">
-        <LineChart data={chartData.data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-          <XAxis dataKey="year" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip 
-            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 20px rgba(0,0,0,0.1)' }}
-          />
-          <Legend wrapperStyle={{ paddingTop: '10px' }} />
-          
-          {/* Top 3 질병에 대해 각각 선 그리기 */}
-          {chartData.lines.map((diseaseName, index) => (
-            <Line 
-              key={diseaseName}
-              type="monotone" // 부드러운 곡선
-              dataKey={diseaseName} 
-              stroke={colors[index]} 
-              strokeWidth={3}
-              dot={{ r: 4 }}
-              activeDot={{ r: 6 }}
+    <div style={styles.wrapper}>
+      
+      {/* 차트 타이틀 */}
+      <h4 style={styles.chartTitle}>최근 5년 추이 (Top 3)</h4>
+      
+      {/* 차트 영역 */}
+      <div style={styles.chartContainer}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart  data={chartData.data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+            <XAxis dataKey="year" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip 
+              contentStyle={{ 
+                borderRadius: '12px', 
+                border: 'none', 
+                boxShadow: '0 8px 20px rgba(0,0,0,0.1)' 
+              }}
             />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+            
+            {chartData.lines.map((diseaseName, index) => (
+              <Line 
+                key={diseaseName}
+                type="monotone"
+                dataKey={diseaseName} 
+                stroke={colors[index]} 
+                strokeWidth={3}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 통계 박스 */}
+      <div style={styles.statBox}>
+        <div style={styles.statRow}>
+          <span>5년간 총 사망자 수</span>
+          <strong style={{color: '#e17055'}}>{chartData.stats.totalDeaths}</strong>
+        </div>
+        <div style={styles.statRow}>
+          <span>주요 원인 (1위)</span>
+          <strong>{chartData.stats.mainCause}</strong>
+        </div>
+      </div>
+
     </div>
   );
+};
+
+const styles = {
+  wrapper: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    background: '#fff',
+    padding: '20px',
+    borderRadius: '16px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+    border: '1px solid #f1f3f5',
+  },
+  
+  chartTitle: {
+    fontSize: '1rem',
+    color: '#495057',
+    fontWeight: 600,
+    margin: 0,
+    textAlign: 'center',
+  },
+  
+  chartContainer: 
+  {
+    width: '100%',
+    height: '500px', // 차트만의 고정 높이
+    position: 'relative',
+  },
+  
+  statBox: { 
+    backgroundColor: '#F8F9FA', 
+    padding: '30px', 
+    borderRadius: '16px', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '10px' 
+  },
+  
+  statRow: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    fontSize: '1.1rem', 
+    borderBottom: '1px dashed #dfe6e9', 
+    paddingBottom: '10px',
+    // 마지막 row는 border 제거
+    '&:lastChild': {
+      borderBottom: 'none',
+    }
+  },
 };
 
 export default TrendLineChart;
