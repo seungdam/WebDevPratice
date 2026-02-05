@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 
+import DiseaseBackGround from '../assets/background/DiseaseSection.png'
+import AccidentBackGround from '../assets/background/Accident.png'
+
 export function TitleScene({ onSelectGroup }) 
 {
   const [hoverLeft,   setHoverLeft] = useState(false);
@@ -90,7 +93,34 @@ const styles =
     transition: 'flex 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease, opacity 0.4s ease',
     backgroundColor: 'transparent', // 기본은 투명 (컨테이너 색상 따라감)
   },
+  leftSection: 
+  {
+    backgroundImage: `
+    linear-gradient(
+        to bottom,
+        rgba(244, 67, 54, 0.4),
+        rgba(198, 40, 40, 0.6) 
+      ),
+    url(${DiseaseBackGround})`,
+    
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+  },
 
+  rightSection: 
+  {
+    backgroundImage: `
+    linear-gradient(
+        to bottom, 
+        rgba(33, 150, 243, 0.4), /* 위쪽: 약간 밝은 파랑 (투명도 40%) */
+        rgba(21, 101, 192, 0.6)  /* 아래쪽: 조금 더 어두운 파랑 (투명도 60%) */
+      ),
+    url(${AccidentBackGround})`,
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
+  },
   // Hover Effect
   sectionHover: 
   {

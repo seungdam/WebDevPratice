@@ -16,115 +16,8 @@ import imgLiver from  '../assets/Liver.png'; // river.png -> Liver로 사용
 import imgDigest from '../assets/Digestive.png';
 import imgKidney from '../assets/Urology.png';
 import imgEndo from   '../assets/Endocrine.png';
-import imgRepro from  '../assets/ManWoman.png'; // 또는 여성.png
 
-
-
-const ORGAN_DATA = 
-[
-  { 
-    id: 'brain', 
-    name: 'Nervous System', 
-    title: 'Nervous System', 
-    script: '뇌와 신경계 데이터 분석', 
-    img: imgBrain, 
-    top: 63,       
-    left: 50,      
-    width: 300,    
-    height: 600,   
-    zIndex: 1     
-  },
-
-  { 
-    id: 'lungs', 
-    name: 'Lungs', 
-    title: 'Respiratory System', 
-    script: '호흡기계 질환 분석', 
-    img: imgLung, 
-    top: 50,       
-    left: 50,      
-    width: 200,    
-    height: 200,
-    zIndex: 10
-  },
-  { 
-    id: 'heart', 
-    name: 'Heart', 
-    title: 'Cardiovascular System', 
-    script: '심혈관계 질환 분석', 
-    img: imgHeart, 
-    top: 70,       
-    left: 90,      
-    width: 120,    
-    height: 120,
-    zIndex: 12     
-  },
-
-  // [상복부] 간과 내분비(췌장)
-  { 
-    id: 'liver', 
-    name: 'Liver', 
-    title: 'Hepatic System', 
-    script: '간 및 대사 질환 분석', 
-    img: imgLiver, 
-    top: 70,     
-    left: 35,    
-    width: 300, 
-    height: 100,
-    zIndex: 10
-  },
-  { 
-    id: 'endocrine', 
-    name: 'Endocrine', 
-    title: 'Endocrine System', 
-    script: '췌장 및 내분비계 분석', 
-    img: imgEndo, 
-    top: 60,      
-    left: 45,     
-    width: 140, 
-    height: 100,
-    zIndex: 12
-  },
-
-  // [중복부] 소화기와 신장
-  { 
-    id: 'digestive', 
-    name: 'Digestive', 
-    title: 'Digestive System', 
-    script: '소화기계 질환 분석', 
-    img: imgDigest, 
-    top: 100,      
-    left: 50,     
-    width: 150, 
-    height: 500,
-    zIndex: 8    
-  },
-  { 
-    id: 'kidney', 
-    name: 'Kidneys', 
-    title: 'Urinary System', 
-    script: '신장 및 비뇨기계 분석', 
-    img: imgKidney, 
-    top: 120,       
-    left: 50,      
-    width: 300, 
-    height: 200,
-    zIndex: 9    
-  },
-
-  { 
-    id: 'repro', 
-    name: 'Reproductive', 
-    title: 'Reproductive System', 
-    script: '생식기계 질환 분석', 
-    img: imgRepro, 
-    top: 90,      
-    left: -20,     
-    width: 300, 
-    height: 300,
-    zIndex: 10
-  }
-];
+import { ORGAN_DATA } from '../Data/organ.js';
 
 
 const DiseaseScene = () => 
@@ -286,15 +179,17 @@ const DiseaseScene = () =>
               <section className="popUpItem" style={styles.section}>
                 <h3 style={styles.subTitle}>Annual Trend</h3>
                 <div style={styles.chartPlaceholder}>
-                    {/* 차트 플레이스홀더를 실제 컴포넌트로 교체 */}
                     <div style={{ 
-                    minHeight: '400px', // 차트 높이 확보
+                    width: '100%', // 가로 꽉 차게
+                    height: '500px', // ★ 차트가 그려질 명확한 높이 확보 (minHeight보다 height 권장)
                     background: '#fff', 
                     marginTop: '20px', 
                     borderRadius: '16px',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)', // 살짝 띄우기
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
                     padding: '20px',
-                    border: '1px solid #f1f3f5'
+                    border: '1px solid #f1f3f5',
+                    boxSizing: 'border-box', // 패딩 포함 크기 계산
+                    position: 'relative' // 자식(차트)의 위치 기준점
                     }}>
                     {/* 선택된 장기 ID를 넘겨주면 알아서 필터링해서 그림 */}
                     <DiseaseChart selectedOrgan={selected.id} />
@@ -474,7 +369,7 @@ const styles =
   subTitle: { fontSize: '1.5rem', fontWeight: 700, color: '#2d3436', borderLeft: '4px solid #2d3436', paddingLeft: '15px' },
   statBox: { backgroundColor: '#F8F9FA', padding: '30px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '15px' },
   statRow: { display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', borderBottom: '1px dashed #dfe6e9', paddingBottom: '10px' },
-  chartPlaceholder: { width: '100%', height: '300px', backgroundColor: '#fff', border: '2px solid #f1f2f6', borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b2bec3' },
+  chartPlaceholder: { width: '100%', height: '100%', backgroundColor: '#fff', border: '2px solid #f1f2f6', borderRadius: '16px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#b2bec3' },
   longText: { fontSize: '1.1rem', lineHeight: '1.8', color: '#4a4a4a', wordBreak: 'keep-all' },  
   closeBtn: 
   {
