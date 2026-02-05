@@ -1,15 +1,12 @@
-import React, { useMemo } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
+import { useMemo } from 'react';
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // 데이터 경로 (기존과 동일)
-import rawData from '../data/chart_data_v2.json';
+import rawData from '../../../public/chart_data_v2.json'
 
-import {ORGAN_CODE_MAP} from  '../Data/organ.js';
+import {DEATH_CODE_MAP} from  '../constant/death_code_map.js';
 
-// 헬퍼 함수 (기존과 동일)
-const isMatch = (code, rule) => 
+const IsMatch = (code, rule) => 
 {
     const cleanCode = code.trim();
     const cleanRule = rule.trim();
@@ -24,14 +21,15 @@ const isMatch = (code, rule) =>
     return cleanCode.startsWith(cleanRule);
 };
 
-const checkCodeMatch = (dataCode, rules) => 
+const CheckCodeMatch = (dataCode, rules) => 
 {
     if (!dataCode) return false;
-    return rules.some(rule => {
+    return rules.some(rule => 
+    {
       if (rule.includes(',')) {
-        return rule.split(',').some(subRule => isMatch(dataCode, subRule.trim()));
+        return rule.split(',').some(subRule => IsMatch(dataCode, subRule.trim()));
       }
-      return isMatch(dataCode, rule);
+      return IsMatch(dataCode, rule);
     });
 };
 
@@ -43,13 +41,13 @@ const TrendLineChart = ({ selectedOrgan }) =>
   {
     if (!selectedOrgan || !rawData) return [];
     
-    const targetRules = ORGAN_CODE_MAP[selectedOrgan] || [];
+    const targetRules = DEATH_CODE_MAP[selectedOrgan] || [];
     
     // 1-1. 해당 장기에 속하는 모든 데이터 필터링
     const filtered = rawData.filter(item => 
     {
         const code = item.cause_code || item.cat || '';
-        return checkCodeMatch(code, targetRules);
+        return CheckCodeMatch(code, targetRules);
     });
 
     // 1-2. 질병 이름별로 전체(모든 연도, 모든 나이) 사망자 수 합산하여 Top 3 선정
@@ -70,10 +68,12 @@ const TrendLineChart = ({ selectedOrgan }) =>
     // 목표 형태: [{ year: 2018, '뇌졸중': 100, '뇌출혈': 50 }, { year: 2019, ... }]
     const years = [...new Set(filtered.map(d => d.stat_year))].sort();
     
-    const result = years.map(year => {
+    const result = years.map(year => 
+    {
         const row = { year };
         
-        top3Diseases.forEach(disease => {
+        top3Diseases.forEach(disease => 
+        {
             // 해당 연도, 해당 질병의 모든 나이대 사망자 합산
             const sum = filtered
                 .filter(d => d.stat_year === year && (d.cause_name || d.name) === disease)

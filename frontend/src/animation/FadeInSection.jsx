@@ -1,6 +1,6 @@
 // Plan: 스크롤 애니메이션 컴포넌트 분리
 import { useEffect, useRef } from "react";
-import * as MyAnim from "../animation/AnimCommon.js"
+import * as MyAnim from "./AnimCommon.js"
 import gsap from "gsap";
 
 export default function FadeInSection({ children, delay = 0 }) 

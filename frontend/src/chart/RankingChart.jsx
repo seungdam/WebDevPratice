@@ -1,15 +1,14 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Rectangle
-} from 'recharts';
+import { useState, useMemo, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Rectangle} from 'recharts';
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
 import rawData from '../../../public/chart_data_v3.json'; 
-import { ORGAN_CODE_MAP } from '../Data/organ.js';
+import { DEATH_CODE_MAP } from '../constant/death_code_map.js';
 
 
-const COLORS = [
+const COLORS = 
+[
   '#ff6b6b', // 0: Red
   '#fcc419', // 1: Yellow
   '#6BFFA6', // 2: Green
@@ -20,7 +19,7 @@ const COLORS = [
 ];
 
 
-const isMatch = (code, rule) => 
+const IsMatch = (code, rule) => 
 {
   const cleanCode = code.trim(); // 데이터 코드 (예: "J18")
   const cleanRule = rule.trim(); // 규칙 (예: "J12-J18")
@@ -44,44 +43,31 @@ const isMatch = (code, rule) =>
 };
 
 // 헬퍼 함수: 전체 규칙 배열과 질병 코드를 검사
-const checkCodeMatch = (dataCode, rules) => 
+const IsCodeMatch = (dataCode, rules) => 
 {
   if (!dataCode) return false;
   
-  return rules.some(rule => {
+  return rules.some(rule => 
+  {
     // 1. 콤마로 구분된 다중 규칙 처리 (예: "F01, F03")
-    if (rule.includes(',')) {
+    if (rule.includes(',')) 
+    {
       const subRules = rule.split(',').map(s => s.trim());
-      return subRules.some(subRule => isMatch(dataCode, subRule));
+      return subRules.some(subRule => IsMatch(dataCode, subRule));
     }
     // 2. 단일 규칙 처리
-    return isMatch(dataCode, rule);
+    return IsMatch(dataCode, rule);
   });
 };
 
-const CustomYAxisTick = ({ x, y, payload }) => {
+const CustomYAxisTick = ({ x, y, payload }) => 
+{
   return (
     <g transform={`translate(${x},${y})`}>
-      {/* 🎨 1. 배경 박스 (글자 뒤에 깔리는 색상) */}
-      <rect
-        x={-115}       // 축(x) 기준 왼쪽으로 115px 이동
-        y={-12}        // 수직 중앙 정렬 보정
-        width={110}    // 박스 너비 (YAxis width와 맞춤)
-        height={24}    // 박스 높이
-        rx={4}         // 둥근 모서리 정도
-        fill="#f1f3f5" // ★ 배경색 (연한 회색)
-        // stroke="#dee2e6" // (옵션) 테두리 선 색상
-      />
-      
-      {/* ✍️ 2. 글자 */}
-      <text
-        x={-10}        // 박스 오른쪽 끝에서 살짝 안쪽으로(-10px)
-        y={4}          // 수직 중앙 정렬 보정
-        textAnchor="end" // 오른쪽 정렬
-        fill="#495057" // 글자색
-        fontSize={8}
-        fontWeight={700} // 글자 굵게
-      >
+      {/*  배경 박스 (글자 뒤에 깔리는 색상) */}
+      <rect x={-115} y={-12} width={110} height={24} rx={4} fill="#f1f3f5" stroke="#dee2e6"/>
+      {/* Legend */}
+      <text x={-10} y={4} textAnchor="end" fill="#495057" fontSize={8} fontWeight={700}>
         {payload.value}
       </text>
     </g>
@@ -89,7 +75,7 @@ const CustomYAxisTick = ({ x, y, payload }) => {
 };
 
 
-const DiseaseChart = ({ selectedOrgan }) => 
+const RankingChart = ({ selectedObject }) => 
 {
   // 1. 데이터 구조 정규화
   const safeData = useMemo(() => 
@@ -107,7 +93,6 @@ const DiseaseChart = ({ selectedOrgan }) =>
   {
     if (safeData.length === 0) return [];
     const years = [...new Set(safeData.map(d => d.stat_year))];
-    // 숫자 기준 오름차순 정렬 (2020, 2021...)
     return years.sort((a, b) => Number(a) - Number(b));
   }, [safeData]);
 
@@ -117,8 +102,7 @@ const DiseaseChart = ({ selectedOrgan }) =>
     
     const extractAge = (r) => r.age_range || r.Age || r.age || null; 
     const agesFiltered = [...new Set(safeData.map(extractAge).filter(Boolean))];
-    
-    // 숫자 기준 오름차순 정렬 (0세 -> 65세)
+  
     return agesFiltered.sort((a, b) => 
     {
       const aNum = parseInt(a.match(/\d+/)?.[0] || 0);
@@ -147,16 +131,17 @@ const DiseaseChart = ({ selectedOrgan }) =>
   // 3. 데이터 필터링 & 가공
   const processedData = useMemo(() => 
   {
-    if (!selectedOrgan || safeData.length === 0 || !selectedYear || AGE_GROUPS.length === 0) return [];
+    if (!selectedObject || safeData.length === 0 || !selectedYear || AGE_GROUPS.length === 0) return [];
 
     const targetAge = AGE_GROUPS[ageIdx];
-    const targetRules = ORGAN_CODE_MAP[selectedOrgan] || []; // 코드 목록 가져오기
+    const targetRules = DEATH_CODE_MAP[selectedObject] || []; // 코드 목록 가져오기
 
-    // Step 1: 연도 필터링
+    // 연도 필터링
     let filtered = safeData.filter(item => item.stat_year == selectedYear);
 
-    // Step 2: 연령 & 질병코드 정밀 필터링
-    filtered = filtered.filter(item => {
+    // 연령 & 질병코드 정밀 필터링
+    filtered = filtered.filter(item => 
+    {
       const currentAge = item.age_range || item.Age;
       // 데이터의 코드 (cause_code가 없으면 cat이나 빈 문자열)
       const currentCode = item.cause_code || item.cat || ''; 
@@ -164,10 +149,11 @@ const DiseaseChart = ({ selectedOrgan }) =>
       if (currentAge !== targetAge) return false;
       
       // ★ [핵심] 새로 만든 스마트 매칭 함수 사용
-      return checkCodeMatch(currentCode, targetRules);
+      return IsCodeMatch(currentCode, targetRules);
     });
 
-    const mapped = filtered.map(item => {
+    const mapped = filtered.map(item => 
+    {
       const name = item.cause_name || item.name || '알 수 없음';
       const rawCount = item.total_death_count ?? item.death_count ?? item.val ?? 0;
       const countNum = typeof rawCount === 'string' 
@@ -183,11 +169,11 @@ const DiseaseChart = ({ selectedOrgan }) =>
       fill: COLORS[index % COLORS.length]
     }));
 
-  }, [selectedOrgan, selectedYear, ageIdx, AGE_GROUPS, safeData]);
+  }, [selectedObject, selectedYear, ageIdx, AGE_GROUPS, safeData]);
   // --- UI Render ---
 
   // 예외 처리
-  if (!selectedOrgan) return <div style={styles.centerMsg}>장기를 선택해주세요</div>;
+  if (!selectedObject) return <div style={styles.centerMsg}>장기를 선택해주세요</div>;
   if (safeData.length === 0) return <div style={styles.centerMsg}>데이터를 로드할 수 없습니다</div>;
   if (processedData.length === 0) return <div style={styles.centerMsg}>표시할 데이터가 없습니다</div>;
 
@@ -307,4 +293,4 @@ const styles = {
   sliderLabels: { display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '0.75rem', color: '#ced4da', fontWeight: 500 }
 };
 
-export default DiseaseChart;
+export default RankingChart;
