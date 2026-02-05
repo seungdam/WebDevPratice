@@ -5,18 +5,18 @@ import { popUpCard } from '../animation/PopUpAnimation.js';
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import FadeInSection from './FadeInSection.jsx';
 import OrganButton from './OrganButton.jsx'
-
+import DiseaseChart from './RankingChart.jsx';
 
 gsap.registerPlugin(ScrollToPlugin);
 
-import imgBrain from  '../assets/brain2.png';
-import imgLung from   '../assets/lung2.png';
-import imgHeart from  '../assets/heart2.png';
-import imgLiver from  '../assets/liver2.png'; // river.png -> Liver로 사용
-import imgDigest from '../assets/digestive2.png';
-import imgKidney from '../assets/urology2.png';
-import imgEndo from   '../assets/Endocrine2.png';
-import imgRepro from  '../assets/man2.png'; // 또는 여성.png
+import imgBrain from  '../assets/Brain.png';
+import imgLung from   '../assets/Lung.png';
+import imgHeart from  '../assets/Heart.png';
+import imgLiver from  '../assets/Liver.png'; // river.png -> Liver로 사용
+import imgDigest from '../assets/Digestive.png';
+import imgKidney from '../assets/Urology.png';
+import imgEndo from   '../assets/Endocrine.png';
+import imgRepro from  '../assets/Man.png'; // 또는 여성.png
 
 
 
@@ -30,7 +30,7 @@ const ORGAN_DATA =
     img: imgBrain, 
     top: 63,       
     left: 50,      
-    width: 500,    
+    width: 300,    
     height: 600,   
     zIndex: 1     
   },
@@ -41,7 +41,7 @@ const ORGAN_DATA =
     title: 'Respiratory System', 
     script: '호흡기계 질환 분석', 
     img: imgLung, 
-    top: 40,       
+    top: 50,       
     left: 50,      
     width: 200,    
     height: 200,
@@ -53,11 +53,11 @@ const ORGAN_DATA =
     title: 'Cardiovascular System', 
     script: '심혈관계 질환 분석', 
     img: imgHeart, 
-    top: 60,       
-    left: 70,      
-    width: 100,    
-    height: 100,
-    zIndex: 11     
+    top: 70,       
+    left: 90,      
+    width: 120,    
+    height: 120,
+    zIndex: 12     
   },
 
   // [상복부] 간과 내분비(췌장)
@@ -67,9 +67,9 @@ const ORGAN_DATA =
     title: 'Hepatic System', 
     script: '간 및 대사 질환 분석', 
     img: imgLiver, 
-    top: 60,     
-    left: 45,    
-    width: 130, 
+    top: 70,     
+    left: 35,    
+    width: 300, 
     height: 100,
     zIndex: 10
   },
@@ -80,10 +80,10 @@ const ORGAN_DATA =
     script: '췌장 및 내분비계 분석', 
     img: imgEndo, 
     top: 60,      
-    left: 35,     
-    width: 90, 
-    height: 70,
-    zIndex: 10
+    left: 45,     
+    width: 140, 
+    height: 100,
+    zIndex: 12
   },
 
   // [중복부] 소화기와 신장
@@ -93,11 +93,11 @@ const ORGAN_DATA =
     title: 'Digestive System', 
     script: '소화기계 질환 분석', 
     img: imgDigest, 
-    top: 80,      
+    top: 100,      
     left: 50,     
-    width: 100, 
+    width: 150, 
     height: 500,
-    zIndex: 12    
+    zIndex: 8    
   },
   { 
     id: 'kidney', 
@@ -119,7 +119,7 @@ const ORGAN_DATA =
     script: '생식기계 질환 분석', 
     img: imgRepro, 
     top: 90,      
-    left: 0,     
+    left: -20,     
     width: 300, 
     height: 300,
     zIndex: 10
@@ -286,7 +286,19 @@ const DiseaseScene = () =>
               <section className="popUpItem" style={styles.section}>
                 <h3 style={styles.subTitle}>Annual Trend</h3>
                 <div style={styles.chartPlaceholder}>
-                    <p> Chart Area</p>
+                    {/* 차트 플레이스홀더를 실제 컴포넌트로 교체 */}
+                    <div style={{ 
+                    minHeight: '400px', // 차트 높이 확보
+                    background: '#fff', 
+                    marginTop: '20px', 
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.05)', // 살짝 띄우기
+                    padding: '20px',
+                    border: '1px solid #f1f3f5'
+                    }}>
+                    {/* 선택된 장기 ID를 넘겨주면 알아서 필터링해서 그림 */}
+                    <DiseaseChart selectedOrgan={selected.id} />
+                  </div>
                 </div>
               </section>
             </FadeInSection>
@@ -413,21 +425,6 @@ const styles =
     flexDirection: 'column',
     gap: '60px', // 섹션 간 간격
   },
-
-  // organBtn: (top, left) => ({
-  //   position: 'absolute',
-  //   top: `${top}%`, left: `${left}%`,
-  //   transform: 'translate(-50%, -50%)',
-  //   padding: '10px 20px',
-  //   backgroundColor: '#fff',
-  //   border: '1px solid rgba(0,0,0,0.1)',
-  //   borderRadius: '30px',
-  //   cursor: 'pointer',
-  //   fontWeight: 'bold',
-  //   boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-  //   transition: 'all 0.3s ease', // 버튼 자체의 호버/딤 효과는 CSS로
-  //   zIndex: 10
-  // }),
 
   organBtn: (top, left, width, height, zIndex) => ({
     position: 'absolute',
