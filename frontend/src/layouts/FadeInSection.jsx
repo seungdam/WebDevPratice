@@ -44,7 +44,7 @@ export default function FadeInSection({ children, delay = 0 })
           }
         });
       },
-      { threshold: 0, rootMargin: "-10% 0px -10% 0px" } 
+      { threshold: 0, rootMargin: "-5% 0px -5% 0px" } 
     );
     observer.observe(element);
     return () => observer.disconnect();

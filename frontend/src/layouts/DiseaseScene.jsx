@@ -3,9 +3,11 @@ import gsap from 'gsap';
 import * as MyAnim from "../animation/AnimCommon.js"
 import { popUpCard } from '../animation/PopUpAnimation.js'; 
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-gsap.registerPlugin(ScrollToPlugin);
 import FadeInSection from './FadeInSection.jsx';
+import OrganButton from './OrganButton.jsx'
 
+
+gsap.registerPlugin(ScrollToPlugin);
 
 import imgBrain from  '../assets/brain2.png';
 import imgLung from   '../assets/lung2.png';
@@ -17,13 +19,123 @@ import imgEndo from   '../assets/Endocrine2.png';
 import imgRepro from  '../assets/man2.png'; // 또는 여성.png
 
 
+
+const ORGAN_DATA = 
+[
+  { 
+    id: 'brain', 
+    name: 'Nervous System', 
+    title: 'Nervous System', 
+    script: '뇌와 신경계 데이터 분석', 
+    img: imgBrain, 
+    top: 63,       
+    left: 50,      
+    width: 500,    
+    height: 600,   
+    zIndex: 1     
+  },
+
+  { 
+    id: 'lungs', 
+    name: 'Lungs', 
+    title: 'Respiratory System', 
+    script: '호흡기계 질환 분석', 
+    img: imgLung, 
+    top: 40,       
+    left: 50,      
+    width: 200,    
+    height: 200,
+    zIndex: 10
+  },
+  { 
+    id: 'heart', 
+    name: 'Heart', 
+    title: 'Cardiovascular System', 
+    script: '심혈관계 질환 분석', 
+    img: imgHeart, 
+    top: 60,       
+    left: 70,      
+    width: 100,    
+    height: 100,
+    zIndex: 11     
+  },
+
+  // [상복부] 간과 내분비(췌장)
+  { 
+    id: 'liver', 
+    name: 'Liver', 
+    title: 'Hepatic System', 
+    script: '간 및 대사 질환 분석', 
+    img: imgLiver, 
+    top: 60,     
+    left: 45,    
+    width: 130, 
+    height: 100,
+    zIndex: 10
+  },
+  { 
+    id: 'endocrine', 
+    name: 'Endocrine', 
+    title: 'Endocrine System', 
+    script: '췌장 및 내분비계 분석', 
+    img: imgEndo, 
+    top: 60,      
+    left: 35,     
+    width: 90, 
+    height: 70,
+    zIndex: 10
+  },
+
+  // [중복부] 소화기와 신장
+  { 
+    id: 'digestive', 
+    name: 'Digestive', 
+    title: 'Digestive System', 
+    script: '소화기계 질환 분석', 
+    img: imgDigest, 
+    top: 80,      
+    left: 50,     
+    width: 100, 
+    height: 500,
+    zIndex: 12    
+  },
+  { 
+    id: 'kidney', 
+    name: 'Kidneys', 
+    title: 'Urinary System', 
+    script: '신장 및 비뇨기계 분석', 
+    img: imgKidney, 
+    top: 120,       
+    left: 50,      
+    width: 300, 
+    height: 200,
+    zIndex: 9    
+  },
+
+  { 
+    id: 'repro', 
+    name: 'Reproductive', 
+    title: 'Reproductive System', 
+    script: '생식기계 질환 분석', 
+    img: imgRepro, 
+    top: 90,      
+    left: 0,     
+    width: 300, 
+    height: 300,
+    zIndex: 10
+  }
+];
+
+
 const DiseaseScene = () => 
 {
   const [selected, setSelected] = useState(null);
   const isOpen = !!selected;
 
   const rightPanelRef =useRef(null);
+  const [hoveredId, setHoveredId] = useState(null); // z-index 제어용
   const contentRef = useRef(null);
+
   // Contents Animation
   useEffect(() => 
   {
@@ -78,7 +190,6 @@ const DiseaseScene = () =>
       });
     }
   }
-
   return (
     <div className="container" style={styles.container}>
       {/* Scene Title*/}
@@ -99,26 +210,27 @@ const DiseaseScene = () =>
             <div style={{...styles.bodyMapPlaceholder,
               transform: isOpen ? 'scale(0.7)' : 'scale(1)',
               transition: 'transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)'}
-            } >
-              {/*Organ Buttons*/}
-              
-              {ORGAN_DATA.map((organ) => (
-                <button
-                  key={organ.id}
-                  onClick={() =>hOrganClick(organ)}
-                  style={{
-                  ...styles.organBtn(organ.top, organ.left,organ.width, organ.height),
-                  opacity: isOpen && selected.id !== organ.id ? 0.3 : 1,
-                  transform: isOpen && selected.id === organ.id 
-                    ? 'translate(-50%, -50%) scale(1.1)' 
-                    : 'translate(-50%, -50%) scale(1)'
-                  }}
-                >
+            } 
+          >
                 
-                {/* 이미지 아이콘 */}
-                <img src={organ.img} alt={organ.name} style={styles.organIcon} />
-              </button>
-          ))}
+            {/*Organ Buttons*/}
+            {ORGAN_DATA.map((organ) => 
+            {
+              const isSelected = selected?.id === organ.id;
+              const isDimmed = isOpen && !isSelected; 
+
+            return (
+              <OrganButton
+                key={organ.id} organ={organ}
+                isSelected={isSelected}
+                isDimmed={isDimmed}  
+                isHovered={hoveredId === organ.id}
+                onSelect={hOrganClick}
+                onHoverChange={setHoveredId}
+              />);
+
+            })}
+
           </div>
           {/* State Message */}
            {!isOpen && (
@@ -375,91 +487,5 @@ const styles =
   }
 };
 
-const ORGAN_DATA = [
-  { 
-    id: 'brain', 
-    name: 'Brain', 
-    title: 'Nervous System', 
-    script: '뇌와 신경계 데이터 분석', 
-    img: imgBrain,
-    top: 60, left: 50,
-    width: 800, height: 800, // 뇌는 좀 둥글고 큼
-    zIndex: 5
-  },
-
-  { 
-    id: 'lungs', 
-    name: 'Lungs', 
-    title: 'Respiratory', 
-    script: '호흡기계 질환 분석', 
-    img: imgLung, 
-    top: 50, left: 50,
-    width: 300, height: 400 // 폐는 좌우로 넓고 큼
-    ,zIndex: 6
-  },
-
-  { 
-    id: 'heart', 
-    name: 'Heart', 
-    title: 'Cardiovascular', 
-    script: '심혈관계 질환 분석', 
-    img: imgHeart, 
-    top: 35, left: 140,
-    width: 300, height: 300 // 심장은 적당한 크기
-    ,zIndex: 10
-  },
-
-  { 
-    id: 'liver', 
-    name: 'Liver', 
-    title: 'Hepatic System', 
-    script: '간 및 대사 질환 분석', 
-    img: imgLiver, 
-    top: 30, left: -40
-    ,width: 400, height: 300 
-    ,zIndex: 9
-  },
-
-  { 
-    id: 'endocrine', 
-    name: 'Endocrine', 
-    title: 'Endocrine System', 
-    script: '췌장 및 내분비계 분석', 
-    img: imgEndo, 
-    top: 70, left: -50,
-    width: 300, height: 300 // 폐는 좌우로 넓고 큼
-    ,zIndex: 9
-  },
-  { 
-    id: 'digestive', 
-    name: 'Digestive', 
-    title: 'Digestive System', 
-    script: '소화기계 질환 분석', 
-    img: imgDigest, 
-    top: 110, left: 45,
-    width: 600, height: 500 
-    ,zIndex: 3
-  },
-  { 
-    id: 'kidney', 
-    name: 'Kidneys', 
-    title: 'Urinary System', 
-    script: '신장 및 비뇨기계 분석', 
-    img: imgKidney, 
-    top: 130, left: -30,
-    width: 300, height: 250
-    ,zIndex: 9
-  },
-  { 
-    id: 'repro', 
-    name: 'Reproductive', 
-    title: 'Reproductive', 
-    script: '생식기계 질환 분석', 
-    img: imgRepro, 
-    top: 130, left: 130,
-    width: 300, height: 300
-    ,zIndex: 9
-  }
-];
 
 export default DiseaseScene;
