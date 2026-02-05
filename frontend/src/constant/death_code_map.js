@@ -14,10 +14,10 @@ export const ORGAN_DATA =
     title: 'Nervous System', 
     script: '뇌와 신경계 데이터 분석', 
     img: imgBrain, 
-    top: 63,       
+    top: 60,       
     left: 50,      
-    width: 300,    
-    height: 600,   
+    width: 100,    
+    height: 100,   
     zIndex: 1     
   },
 
@@ -29,9 +29,9 @@ export const ORGAN_DATA =
     img: imgLung, 
     top: 50,       
     left: 50,      
-    width: 200,    
-    height: 200,
-    zIndex: 10
+    width: 60,    
+    height: 50,
+    zIndex: 9
   },
   { 
     id: 'heart', 
@@ -39,11 +39,11 @@ export const ORGAN_DATA =
     title: 'Cardiovascular System', 
     script: '심혈관계 질환 분석', 
     img: imgHeart, 
-    top: 70,       
-    left: 90,      
-    width: 120,    
-    height: 120,
-    zIndex: 12     
+    top: 60,       
+    left: 60,      
+    width: 40,    
+    height: 40,
+    zIndex: 13   
   },
 
   // [상복부] 간과 내분비(췌장)
@@ -55,9 +55,9 @@ export const ORGAN_DATA =
     img: imgLiver, 
     top: 70,     
     left: 35,    
-    width: 300, 
-    height: 100,
-    zIndex: 10
+    width: 50, 
+    height: 40,
+    zIndex: 12
   },
   { 
     id: 'endocrine', 
@@ -67,8 +67,8 @@ export const ORGAN_DATA =
     img: imgEndo, 
     top: 60,      
     left: 45,     
-    width: 140, 
-    height: 100,
+    width: 60, 
+    height: 20,
     zIndex: 12
   },
   // [중복부] 소화기와 신장
@@ -78,10 +78,10 @@ export const ORGAN_DATA =
     title: 'Digestive System', 
     script: '소화기계 질환 분석', 
     img: imgDigest, 
-    top: 100,      
+    top: 85,      
     left: 50,     
-    width: 150, 
-    height: 500,
+    width: 100, 
+    height: 50,
     zIndex: 8    
   },
   { 
@@ -90,10 +90,10 @@ export const ORGAN_DATA =
     title: 'Urinary System', 
     script: '신장 및 비뇨기계 분석', 
     img: imgKidney, 
-    top: 120,       
+    top: 105,       
     left: 50,      
-    width: 300, 
-    height: 200,
+    width: 50, 
+    height: 30,
     zIndex: 9    
   },
 ];

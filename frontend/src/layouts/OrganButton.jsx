@@ -63,24 +63,21 @@ const OrganButton = ({
 
   const currentStyle = getStyles();
 
-  const BASE_W = 300;
-  const BASE_H = 500;
-  const widthPct = (organ.width / BASE_W) * 100;
-  const heightPct = (organ.height / BASE_H) * 100;
 
   return (
     <button
-      className="organ-btn-container" // CSS 호버 효과용 클래스
+      className="organ-btn-container"
       onClick={() => onSelect(organ)}
       onMouseEnter={() => onHoverChange(organ.id)}
       onMouseLeave={() => onHoverChange(null)}
       style= {{
-      
         position: 'absolute',
         top: `${organ.top}%`,
         left: `${organ.left}%`,
-        width: `${widthPct}%`,
-        height: `${heightPct}%`,
+        
+        // [수정] 데이터 자체가 % 단위라고 가정
+        width: `${organ.width}%`,
+        height: `${organ.height}%`,
       
         transform: `translate(-50%, -50%) scale(${currentStyle.scale})`,
         zIndex: currentStyle.zIndex,
