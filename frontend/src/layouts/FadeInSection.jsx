@@ -39,7 +39,7 @@ export default function FadeInSection({ children, delay = 0 })
               opacity: 0, 
               y: 50, // 원래 위치로 되돌림
               duration: 0.3, 
-              ease: "power2.in" // 나갈 때는 조금 빠르게
+              ease: MyAnim.EASING.cinematic // 나갈 때는 조금 빠르게
               });
           }
         });

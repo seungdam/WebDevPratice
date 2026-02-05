@@ -16,7 +16,7 @@ import imgLiver from  '../assets/Liver.png'; // river.png -> Liver로 사용
 import imgDigest from '../assets/Digestive.png';
 import imgKidney from '../assets/Urology.png';
 import imgEndo from   '../assets/Endocrine.png';
-import imgRepro from  '../assets/Man.png'; // 또는 여성.png
+import imgRepro from  '../assets/ManWoman.png'; // 또는 여성.png
 
 
 
