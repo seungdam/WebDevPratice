@@ -1,24 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import * as MyAnim from "../animation/AnimCommon.js"
 import { popUpCard } from '../animation/PopUpAnimation.js'; 
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import FadeInSection from './FadeInSection.jsx';
+import FadeInSection from '../animation/FadeInSection.jsx';
 import OrganButton from './OrganButton.jsx'
-import DiseaseChart from './RankingChart.jsx';
+import DiseaseChart from '../chart/RankingChart.jsx';
 
 gsap.registerPlugin(ScrollToPlugin);
 
-import imgBrain from  '../assets/Brain.png';
-import imgLung from   '../assets/Lung.png';
-import imgHeart from  '../assets/Heart.png';
-import imgLiver from  '../assets/Liver.png'; // river.png -> Liver로 사용
-import imgDigest from '../assets/Digestive.png';
-import imgKidney from '../assets/Urology.png';
-import imgEndo from   '../assets/Endocrine.png';
-
-import { ORGAN_DATA } from '../Data/organ.js';
-
+import { ORGAN_DATA } from '../constant/death_code_map.js';
 
 const DiseaseScene = () => 
 {
@@ -36,7 +27,7 @@ const DiseaseScene = () =>
     {
       return;
     }
-    // 2. Kill prev-rendering animation (빠르게 다른 장기 클릭 시 꼬임 방지)
+    
     let ctx = gsap.context(() => 
     {  
       if(isOpen && contentRef.current)
@@ -192,7 +183,7 @@ const DiseaseScene = () =>
                     position: 'relative' // 자식(차트)의 위치 기준점
                     }}>
                     {/* 선택된 장기 ID를 넘겨주면 알아서 필터링해서 그림 */}
-                    <DiseaseChart selectedOrgan={selected.id} />
+                    <DiseaseChart selectedObject={selected.id} />
                   </div>
                 </div>
               </section>
@@ -350,7 +341,7 @@ const styles =
     WebkitTapHighlightColor: 'transparent', 
   }),
 
-  // [수정] 이미지 아이콘: 버튼을 가득 채우도록 변경
+
   organIcon: {
     width: '100%',     // 너비 꽉 채움
     height: '100%',     // 높이의 85% 차지 (나머지 15%는 텍스트)

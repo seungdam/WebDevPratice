@@ -3,12 +3,12 @@ import gsap from "gsap";
 
 import * as MyAnim from "../animation/AnimCommon.js"
 
-import FadeInSection from "./FadeInSection"; 
+import FadeInSection from "../animation/FadeInSection.jsx"; 
 
 // Scene Component
 import DiseaseScene from "./DiseaseScene"; 
 import TitleScene from "./TitleScene.jsx";
-// import AccidentScene from "./AccidentScene";
+import AccidentScene from "./AccidentScene.jsx";
 
 
 // Plan: 일단 게임 개발할 때 했던 방식대로 컴포넌트 구성
@@ -17,13 +17,14 @@ import TitleScene from "./TitleScene.jsx";
 const SCENE_GROUPS = 
 {
   "Disease": ["DiseaseScene"],
-  "Accident": [], // ["AccidentScene"]
+  "Accident": ["AccidentScene"], // ["AccidentScene"]
 };
 
 const  SCENE_MAPS = 
 {
     "Title": TitleScene,
     "DiseaseScene": DiseaseScene,
+    "AccidentScene": AccidentScene
 }
 
 export default function SceneController() 

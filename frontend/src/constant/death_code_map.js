@@ -1,10 +1,10 @@
-import imgBrain from  '../assets/Brain.png';
-import imgLung from   '../assets/Lung.png';
-import imgHeart from  '../assets/Heart.png';
-import imgLiver from  '../assets/Liver.png'; // river.png -> Liver로 사용
-import imgDigest from '../assets/Digestive.png';
-import imgKidney from '../assets/Urology.png';
-import imgEndo from   '../assets/Endocrine.png';
+import imgBrain from  '../assets/object/Brain.png';
+import imgLung from   '../assets/object/Lung.png';
+import imgHeart from  '../assets/object/Heart.png';
+import imgLiver from  '../assets/object/Liver.png'; // river.png -> Liver로 사용
+import imgDigest from '../assets/object/Digestive.png';
+import imgKidney from '../assets/object/Urology.png';
+import imgEndo from   '../assets/object/Endocrine.png';
 
 export const ORGAN_DATA = 
 [
@@ -98,7 +98,7 @@ export const ORGAN_DATA =
   },
 ];
 
-export const ORGAN_CODE_MAP = 
+export const DEATH_CODE_MAP = 
 {
   brain: ['I63', 'I61', 'I62','I69','F01, F03',	'G20-G21'],      
   lungs: ['J12-J18', 'C34', 'J44', 'U07.1, U08.2, U10', 'J69'],      
@@ -106,5 +106,13 @@ export const ORGAN_CODE_MAP =
   liver: ['K70', 'C22', 'K74'], 
   digestive: ['C18', 'C19-C21', 'C16','A03, A04, A06-A09', 'E70-E88'],  
   kidney: ['N17-N19', 'C64-C68', 'C51-C58', 'C50', 'C60-C63'],                   
-  endocrine: ['E10-E14', 'C25', 'C23-C24','K80', 'C73'],  
+  endocrine: ['E10-E14', 'C25', 'C23-C24','K80', 'C73'],
+  suicide: ['X60-X84'],       // 1. 고의적 자해(자살)
+  transport: ['V01-V99'],     // 2. 운수사고
+  falls: ['W01-W19'],         // 3. 낙상
+  drowning: ['W65-W74'],      // 4. 익사
+  mechanical: ['W20-W49'],    // 5. 무생물성 기계적 힘에 노출
+  homicide: ['X85-Y09'],      // 6. 타살
+  fire: ['X00-X09'],          // 7. 화재    
+  nature: ['X30-X39']         // 8. 자연의 힘에 노출
 };
